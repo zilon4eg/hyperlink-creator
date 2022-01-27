@@ -15,14 +15,14 @@ def miss_files(list1, list2):
     return natsorted(miss_list, alg=ns.IGNORECASE)  # or alg=ns.IC
 
 
-def body(registry_path, dir_scan, ws_name, settings):
-    xxl = Excel(registry_path, dir_scan, ws_name, settings)
-    registry_path = xxl.get_path_active_book() if registry_path in '' else registry_path
+def body(file_path, dir_scan, ws_name, settings):
+    xxl = Excel(file_path, dir_scan, ws_name, settings)
+    file_path = xxl.get_path_active_book() if file_path in '' else file_path
 
-    if registry_path[registry_path.rfind('\\') + 1:registry_path.rfind('.')].lower().count('исходящ') > 0:
+    if file_path[file_path.rfind('\\') + 1:file_path.rfind('.')].lower().count('исходящ') > 0:
         file_pref = 'исх.№'
         print('Загруженный документ идентифицирован как реестр Исходящих.')
-    elif registry_path[registry_path.rfind('\\') + 1:registry_path.rfind('.')].lower().count('входящ') > 0:
+    elif file_path[file_path.rfind('\\') + 1:file_path.rfind('.')].lower().count('входящ') > 0:
         file_pref = 'вход.№'
         print('Загруженный документ идентифицирован как реестр Входящих.')
     else:

@@ -3,9 +3,9 @@ import xlwings
 
 class Excel:
     def __init__(self, registry_path, dir_scan, ws_name, settings):
-        self.font_size = round(int(settings['hyperlink']['font_size']), 1)
-        self.font_name = settings['hyperlink']['font_name']
-        self.hyperlink_color = settings['hyperlink']['color']
+        self.font_size = round(int(settings['hyperlink']['font']['size']), 1)
+        self.font_name = settings['hyperlink']['font']['name']
+        self.hyperlink_color = settings['hyperlink']['font']['color']
         self.dir_scan = dir_scan
 
         if registry_path not in [True, None, 'None', '']:
@@ -61,7 +61,7 @@ class Excel:
 
         if (
                 name == self.ws[f'H{position}'].value
-                and f'{self.dir_scan}\\{link_name}'.replace('\\', '/') == hyperlink.replace('\\', '/')
+                and f'{self.dir_scan}\\{link_name}'.replace('\\', '/') in hyperlink.replace('\\', '/')
                 and self.font_name == self.ws[f'H{position}'].font.name
                 and self.font_size == self.ws[f'H{position}'].font.size
                 and Excel.hex_to_rgb(self.hyperlink_color) == self.ws[f'H{position}'].font.color

@@ -4,26 +4,42 @@ from pathlib import Path
 
 
 default_config = {
-  "font_list": [
-    "Arial",
-    "Arial Black",
-    "Comic Sans MS",
-    "Courier New",
-    "Georgia",
-    "Impact",
-    "Times New Roman",
-    "Trebuchet MS",
-    "Verdana"
-  ],
-  "hyperlink": {
-    "color": "#0563c1",
-    "font_name": "Times New Roman",
-    "font_size": 12
-  },
-  "path": {
-    "base_registry_path": "",
-    "base_scan_path": ""
-  }
+    "font_list": [
+        "Arial",
+        "Arial Black",
+        "Comic Sans MS",
+        "Courier New",
+        "Georgia",
+        "Impact",
+        "Times New Roman",
+        "Trebuchet MS",
+        "Verdana"
+        ],
+    "hyperlink": {
+        "font": {
+            "color": "#0563c1",
+            "name": "Times New Roman",
+            "size": 12,
+            "is_bold": False,
+            "is_italic": False,
+            "underline": {
+                "is_underline": True,
+                "underline_style": "single"
+            }
+        }
+
+    },
+    "directory": {
+        "scan": {
+            "path": ""
+        }
+    },
+    "file": {
+        "path": "",
+        "reg_num_column": "1",
+        "hl_column": "8",
+        "table_header_size": "2"
+    }
 }
 
 

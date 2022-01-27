@@ -12,8 +12,8 @@ class GUI:
     def main_menu(self):
         PySimpleGUI.theme('LightBrown13')
         settings = self.config.load()
-        base_registry_path = settings['path']['base_registry_path']
-        base_scan_path = settings['path']['base_scan_path']
+        file_path = settings['file']['path']
+        dir_path = settings['directory']['scan']['path']
 
         # ------ Menu Definition ------ #
         menu_def = [
@@ -29,7 +29,7 @@ class GUI:
             [
                 PySimpleGUI.Text('Путь к файлу реестра: ', size=(17, 1)),
                 PySimpleGUI.InputText(key='file', size=(58, 1)),
-                PySimpleGUI.FileBrowse(target='file', initial_folder=base_registry_path, size=(7, 1))
+                PySimpleGUI.FileBrowse(target='file', initial_folder=file_path, size=(7, 1))
             ],
             [
                 PySimpleGUI.Text('Название листа в книге Excel: ', size=(23, 1)),
@@ -39,7 +39,7 @@ class GUI:
             [
                 PySimpleGUI.Text('Путь к папке со сканами: ', size=(19, 1)),
                 PySimpleGUI.InputText(key='folder', size=(56, 1)),
-                PySimpleGUI.FolderBrowse(target='folder', initial_folder=base_scan_path, size=(7, 1))
+                PySimpleGUI.FolderBrowse(target='folder', initial_folder=dir_path, size=(7, 1))
             ],
             [
                 PySimpleGUI.Output(size=(88, 20))
@@ -75,14 +75,14 @@ class GUI:
                 window_main.UnHide()
 
             elif event in 'Start':
-                base_registry_path = values['file']
-                if base_registry_path:
-                    base_registry_path = base_registry_path[:base_registry_path.rfind('/')]
-                    self.config.save({'path': {'base_registry_path': base_registry_path}})
+                file_path = values['file']
+                if file_path:
+                    file_path = file_path[:file_path.rfind('/')]
+                    self.config.save({'file': {'path': file_path}})
 
-                base_scan_path = values['folder']
-                if base_scan_path:
-                    self.config.save({'path': {'base_scan_path': base_scan_path}})
+                dir_path = values['folder']
+                if dir_path:
+                    self.config.save({'directory': {'scan': {'path': dir_path}}})
 
                 registry_path = values['file']
 
@@ -103,8 +103,8 @@ class GUI:
     def font_menu(self):
         settings = self.config.load()
         font_list = settings['font_list']
-        font_name = settings['hyperlink']['font_name']
-        font_size = settings['hyperlink']['font_size']
+        font_name = settings['hyperlink']['font']['name']
+        font_size = settings['hyperlink']['font']['size']
 
         layout = [
             [
@@ -148,8 +148,10 @@ class GUI:
                 self.config.save(
                     {
                         'hyperlink': {
-                            'font_size': int(font_size),
-                            'font_name': values['drop-down']
+                            'font': {
+                                'size': int(font_size),
+                                'name': values['drop-down']
+                            }
                         }
                     }
                 )
@@ -158,7 +160,7 @@ class GUI:
 
     def color_chooser_menu(self):
         settings = self.config.load()
-        img_color = settings['hyperlink']['color']
+        img_color = settings['hyperlink']['font']['color']
 
         layout = [
             [
@@ -194,7 +196,7 @@ class GUI:
                 hyperlink_color = values['COLOR']
                 if hyperlink_color in [None, 'None', '']:
                     hyperlink_color = '#0563c1'
-                self.config.save({'hyperlink': {'color': hyperlink_color}})
+                self.config.save({'hyperlink': {'font': {'color': hyperlink_color}}})
                 window.close()
                 break
 
