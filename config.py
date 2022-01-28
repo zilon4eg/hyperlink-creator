@@ -3,46 +3,6 @@ import os
 from pathlib import Path
 
 
-default_config = {
-    "font_list": [
-        "Arial",
-        "Arial Black",
-        "Comic Sans MS",
-        "Courier New",
-        "Georgia",
-        "Impact",
-        "Times New Roman",
-        "Trebuchet MS",
-        "Verdana"
-        ],
-    "hyperlink": {
-        "font": {
-            "color": "#0563c1",
-            "name": "Times New Roman",
-            "size": 12,
-            "is_bold": False,
-            "is_italic": False,
-            "underline": {
-                "is_underline": True,
-                "underline_style": "single"
-            }
-        }
-
-    },
-    "directory": {
-        "scan": {
-            "path": ""
-        }
-    },
-    "file": {
-        "path": "",
-        "reg_num_column": "1",
-        "hl_column": "8",
-        "table_header_size": "2"
-    }
-}
-
-
 class Config:
     def __init__(self):
         self.local_dir_config_path = f'{str(Path.home())}\\HyperlinkCreator'
@@ -85,6 +45,49 @@ class Config:
         if is_file_exist:
             os.remove(self.local_file_config_path)
         self.create_local_config()
+
+
+lists = {
+    'font_name_list': [
+        'Arial',
+        'Arial Black',
+        'Comic Sans MS',
+        'Courier New',
+        'Georgia',
+        'Impact',
+        'Times New Roman',
+        'Trebuchet MS',
+        'Verdana'
+    ],
+    'font_size_list': list(number for number in range(10, 21)),
+    'font_style_list': ['Обычный', 'Курсив', 'Полужирный', 'Полужирный Курсив'],
+    'underline_style_list': ['(нет)', 'Одинарное', 'Двойное']
+}
+
+
+default_config = {
+
+    'font': {
+        'color': '#0563c1',
+        'name': 'Times New Roman',
+        'size': 12,
+        'style': {
+            'bold': False,
+            'italic': False,
+            'underline': 'single'
+        },
+
+    },
+    'path': {
+        'file': '',
+        'directory': ''
+    },
+    'file': {
+        'reg_num_column': '1',
+        'hl_column': '8',
+        'table_header_size': '2'
+    }
+}
 
 
 if __name__ == '__main__':
