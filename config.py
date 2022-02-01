@@ -59,7 +59,10 @@ lists = {
         'Trebuchet MS',
         'Verdana'
     ],
+    'column_number_list': list(number for number in range(1, 22)),
+    'column_letter_list': list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
     'font_size_list': list(number for number in range(10, 21)),
+    'header_string_list': list(number for number in range(1, 11)),
     'font_style_list': ['Обычный', 'Курсив', 'Полужирный', 'Полужирный Курсив'],
     'underline_style_list': ['(нет)', 'Одинарное', 'Двойное']
 }
@@ -83,9 +86,19 @@ default_config = {
         'directory': ''
     },
     'file': {
-        'reg_num_column': '1',
-        'hl_column': '8',
-        'table_header_size': '2'
+        'header_string_count': 2,
+        'registry_column': {
+            'letter': 'A',
+            'number': 1,
+            'text': 'Вх. №',
+            'true': 'number'
+        },
+        'hyperlink_column': {
+            'letter': 'M',
+            'number': 13,
+            'text': 'Скан образ документа',
+            'true': 'text'
+        },
     }
 }
 

@@ -127,34 +127,43 @@ class GUI:
         else:
             return '(Нет)'
 
-
     def settings_menu(self):
         settings = self.config.load()
         font_name = settings['font']['name']
         font_style = GUI.font_style_text(settings)
         font_size = settings['font']['size']
+        color = settings['font']['color']
         underline_style = GUI.underline_style_text(settings)
+        header_string_count = settings['file']['header_string_count']
         font_name_list = config.lists['font_name_list']
         font_style_list = config.lists['font_style_list']
         font_size_list = config.lists['font_size_list']
-        color = settings['font']['color']
         underline_style_list = config.lists['underline_style_list']
+        header_string_list = config.lists['header_string_list']
+        column_registry_number = settings['file']['registry_column']['number']
+        column_registry_number_is_true = True if settings['file']['registry_column']['true'] == 'number' else False
+        column_registry_letter = settings['file']['registry_column']['letter']
+        column_registry_letter_is_true = True if settings['file']['registry_column']['true'] == 'letter' else False
+        column_registry_text = settings['file']['registry_column']['text']
+        column_registry_text_is_true = True if settings['file']['registry_column']['true'] == 'text' else False
+        column_registry_number_list = config.lists['column_number_list']
+        column_registry_letter_list = config.lists['column_letter_list']
 
         left_col = sg.Column([
             [sg.Text(text='Шрифт', auto_size_text=True)],
-            [sg.In(default_text=font_name, key='FONT_NAME_LIST', enable_events=True, readonly=True, size=22)],
+            [sg.InputText(default_text=font_name, key='FONT_NAME', readonly=True, size=22)],
             [sg.Listbox(values=font_name_list, default_values=[font_name], key='FONT_NAME_LIST', enable_events=True, size=(20, 8))],
         ], size=(180, 220))
 
         mid_col = sg.Column([
             [sg.Text(text='Начертание', auto_size_text=True)],
-            [sg.In(default_text=font_style, key='FONT_STYLE', readonly=True, size=22)],
+            [sg.InputText(default_text=font_style, key='FONT_STYLE', readonly=True, size=22)],
             [sg.Listbox(values=font_style_list, default_values=[font_style], key='FONT_STYLE_LIST', enable_events=True, size=(20, 8))],
         ], size=(180, 220))
 
         right_col = sg.Column([
             [sg.Text(text='Размер', auto_size_text=True)],
-            [sg.In(default_text=font_size, key='FONT_SIZE', readonly=True, size=8)],
+            [sg.InputText(default_text=font_size, key='FONT_SIZE', readonly=True, size=8)],
             [sg.Listbox(values=font_size_list, default_values=[font_size], key='FONT_SIZE_LIST', enable_events=True, size=(6, 8))],
         ], size=(70, 220))
 
@@ -162,18 +171,39 @@ class GUI:
             [left_col, mid_col, right_col],
             [
                 sg.Text(text='  Подчеркивание:', auto_size_text=True),
-                sg.DropDown(values=underline_style_list, default_value=underline_style, key='UNDERLINE_STYLE_LIST'),
+                sg.DropDown(values=underline_style_list, default_value=underline_style, readonly=True, key='UNDERLINE_STYLE_LIST'),
                 sg.Text(text='       ', auto_size_text=True),
                 sg.Text(text='Цвет текста:', auto_size_text=True),
                 sg.Button(button_text='', button_color=color, size=(2, 1), disabled=True, key='IMG_COLOR'),
-                sg.Input(key='COLOR', readonly=True, size=(7, 1), enable_events=True, visible=True),
-                sg.ColorChooserButton(button_text='Изменить', key='KEY_COLOR')
+                sg.Input(key='COLOR', readonly=True, size=(7, 1), visible=False),
+                sg.ColorChooserButton(button_text='Изменить', key='KEY_COLOR'),
             ],
         ]
 
         tab2_layout = [
-            [sg.T('This is inside tab 2')],
-            [sg.In(key='in')]
+            [
+                sg.Text(text='Количество строк в шапке таблицы:', auto_size_text=True),
+                sg.DropDown(values=header_string_list, default_value=header_string_count, readonly=True, key='HEADER_STRING_COUNT'),
+            ],
+            [
+                sg.Frame(layout=[
+                    [
+                        sg.Text(text='Задать столбец с регистрационными номерами', auto_size_text=True)
+                    ],
+                    [
+                        sg.Radio(text='По номеру:', group_id='COLUMN_REGISTRY_NUMBER', enable_events=True, key='NUMBER_COLUMN_REGISTRY_NUMBER_RADIO', default=column_registry_number_is_true, size=14),
+                        sg.DropDown(values=column_registry_number_list, default_value=column_registry_number, readonly=True, key='NUMBER_COLUMN_REGISTRY_NUMBER', disabled=False, size=3),
+                    ],
+                    [
+                        sg.Radio(text='По букве:', group_id='COLUMN_REGISTRY_NUMBER', enable_events=True, key='LETTER_COLUMN_REGISTRY_NUMBER_RADIO', default=column_registry_letter_is_true, size=14),
+                        sg.DropDown(values=column_registry_letter_list, default_value=column_registry_letter, readonly=True, key='LETTER_COLUMN_REGISTRY_NUMBER', disabled=False, size=3),
+                    ],
+                    [
+                        sg.Radio(text='По тексту в ячейке:', group_id='COLUMN_REGISTRY_NUMBER', key='TEXT_COLUMN_REGISTRY_NUMBER_RADIO', enable_events=True, default=column_registry_text_is_true, size=14),
+                        sg.InputText(default_text=column_registry_text, key='TEXT_COLUMN_REGISTRY_NUMBER', disabled=False, size=42),
+                    ],
+                ], title='Выбор столбцов', relief=sg.RELIEF_SUNKEN),
+            ],
         ]
 
         layout = [
@@ -181,7 +211,7 @@ class GUI:
                 sg.TabGroup(
                     [[
                         sg.Tab('Шрифт', tab1_layout),
-                        sg.Tab('Гиперссылки', tab2_layout),
+                        sg.Tab('Файл', tab2_layout),
                     ]], size=(470, 300))
             ],
             [
@@ -195,10 +225,11 @@ class GUI:
 
         while True:
             event, values = window.read()
-            print(event)
-            print(values)
-            # ===(exit)===
-            if event is sg.WIN_CLOSED:  # always,  always give a way out!
+            print('event =', event)
+            print('values =', values)
+            # ===(exit if)===
+            if event in [sg.WIN_CLOSED, 'CANCEL_SETTINGS']:  # always,  always give a way out!
+                window.close()
                 break
             # ===(update color)===
             if values['COLOR'] in [None, 'None', '']:
@@ -208,110 +239,140 @@ class GUI:
             window['IMG_COLOR'].update(button_color=img_color)
             # ===(update font name)===
             if event in 'FONT_NAME_LIST':
-                font_name = values['FONT_NAME']
-                window['FONT_NAME'].update()
+                font_name = values['FONT_NAME_LIST']
+                window['FONT_NAME'].update(value=font_name[0])
+            # ===(update font size)===
+            if event in 'FONT_SIZE_LIST':
+                font_name = values['FONT_SIZE_LIST']
+                window['FONT_SIZE'].update(value=font_name[0])
+            # ===(update font style)===
+            if event in 'FONT_STYLE_LIST':
+                font_name = values['FONT_STYLE_LIST']
+                window['FONT_STYLE'].update(value=font_name[0])
+            # ===(set default settings)===
+            if event in 'SET_DEFAULT_SETTINGS':
+                # ===(set default variables)===
+                def_settings = config.default_config
+                def_img_color = def_settings['font']['color']
+                def_underline_style = GUI.underline_style_text(def_settings)
+                def_font_name = def_settings['font']['name']
+                def_index_font_name = config.lists['font_name_list'].index(def_font_name)
+                def_font_size = def_settings['font']['size']
+                def_index_font_size = config.lists['font_size_list'].index(def_font_size)
+                def_font_style = GUI.font_style_text(def_settings)
+                def_index_font_style = config.lists['font_style_list'].index(def_font_style)
+                # ===(set fields with default variables)===
+                window['IMG_COLOR'].update(button_color=def_img_color)
+                window['COLOR'].update(value=def_img_color)
+                window['UNDERLINE_STYLE_LIST'].update(value=def_underline_style)
+                window['FONT_NAME'].update(value=def_font_name)
+                window['FONT_NAME_LIST'].update(set_to_index=def_index_font_name)
+                window['FONT_SIZE'].update(value=def_font_size)
+                window['FONT_SIZE_LIST'].update(set_to_index=def_index_font_size)
+                window['FONT_STYLE'].update(value=def_font_style)
+                window['FONT_STYLE_LIST'].update(set_to_index=def_index_font_style)
 
         pass
 
-    def font_menu(self):
-        settings = self.config.load()
-        font_list = settings['font_list']
-        font_name = settings['hyperlink']['font']['name']
-        font_size = settings['hyperlink']['font']['size']
-
-        layout = [
-            [
-                sg.Combo(font_list, default_value=font_name, key='drop-down', enable_events=True)
-            ],
-            [
-                sg.Spin([sz for sz in range(10, 21)], font='Arial 20', initial_value=font_size,
-                                 change_submits=True, key='spin'),
-                sg.Slider(range=(10, 20), orientation='h', size=(10, 25), change_submits=True,
-                                   key='slider', font=f'{font_name.replace(" ", "")} 20', default_value=font_size),
-                sg.Text("Ab", size=(2, 1), font=f'{font_name.replace(" ", "")} {str(font_size)}', key='text')
-            ],
-            [
-                sg.Submit(button_text='Ok'),
-                sg.Cancel(button_text='Cancel')
-            ]
-        ]
-
-        window = sg.Window("Font size selector", layout, grab_anywhere=False)
-        # Event Loop
-
-        while True:
-            event, values = window.read()
-
-            window['text'].update(font=f'{values["drop-down"].replace(" ", "")} {str(font_size)}')
-
-            if event in (sg.WIN_CLOSED, 'Cancel'):
-                window.close()
-                break
-            sz_spin = int(values['spin'])
-            sz_slider = int(values['slider'])
-            sz = sz_spin if sz_spin != font_size else sz_slider
-            if sz != font_size:
-                font_size = sz
-                font = f'{values["drop-down"].replace(" ", "")} {str(font_size)}'
-                window['text'].update(font=font)
-                window['slider'].update(sz)
-                window['spin'].update(sz)
-
-            if event in 'Ok':
-                self.config.save(
-                    {
-                        'hyperlink': {
-                            'font': {
-                                'size': int(font_size),
-                                'name': values['drop-down']
-                            }
-                        }
-                    }
-                )
-                window.close()
-                break
-
-    def color_chooser_menu(self):
-        settings = self.config.load()
-        img_color = settings['hyperlink']['font']['color']
-
-        layout = [
-            [
-                sg.Text('Код цвета:'),
-                sg.Input(key='COLOR', readonly=True, size=(7, 1), enable_events=True),
-                sg.ColorChooserButton(button_text='Choose color', key='COLOR')
-            ],
-            [
-                sg.Submit(button_text='Ok'),
-                sg.Cancel(button_text='Cancel'),
-                sg.Text(' Пример цвета:'),
-                sg.Button(button_text='', button_color=img_color, size=(2, 1), disabled=True, key='IMG_COLOR'),
-            ],
-        ]
-
-        window = sg.Window("Font size selector", layout, grab_anywhere=False)
-        # Event Loop
-
-        while True:
-            event, values = window.read()
-
-            if values['COLOR'] in [None, 'None', '']:
-                img_color = '#0563c1'
-            else:
-                img_color = values['COLOR']
-            window['IMG_COLOR'].update(button_color=img_color)
-
-            if event in (sg.WIN_CLOSED, 'Cancel'):
-                window.close()
-                break
-
-            if event in 'Ok':
-                hyperlink_color = values['COLOR']
-                if hyperlink_color in [None, 'None', '']:
-                    hyperlink_color = '#0563c1'
-                self.config.save({'hyperlink': {'font': {'color': hyperlink_color}}})
-                window.close()
-                break
+    # def font_menu(self):
+    #     settings = self.config.load()
+    #     font_list = settings['font_list']
+    #     font_name = settings['hyperlink']['font']['name']
+    #     font_size = settings['hyperlink']['font']['size']
+    #
+    #     layout = [
+    #         [
+    #             sg.Combo(font_list, default_value=font_name, key='drop-down', enable_events=True)
+    #         ],
+    #         [
+    #             sg.Spin([sz for sz in range(10, 21)], font='Arial 20', initial_value=font_size,
+    #                              change_submits=True, key='spin'),
+    #             sg.Slider(range=(10, 20), orientation='h', size=(10, 25), change_submits=True,
+    #                                key='slider', font=f'{font_name.replace(" ", "")} 20', default_value=font_size),
+    #             sg.Text("Ab", size=(2, 1), font=f'{font_name.replace(" ", "")} {str(font_size)}', key='text')
+    #         ],
+    #         [
+    #             sg.Submit(button_text='Ok'),
+    #             sg.Cancel(button_text='Cancel')
+    #         ]
+    #     ]
+    #
+    #     window = sg.Window("Font size selector", layout, grab_anywhere=False)
+    #     # Event Loop
+    #
+    #     while True:
+    #         event, values = window.read()
+    #
+    #         window['text'].update(font=f'{values["drop-down"].replace(" ", "")} {str(font_size)}')
+    #
+    #         if event in (sg.WIN_CLOSED, 'Cancel'):
+    #             window.close()
+    #             break
+    #         sz_spin = int(values['spin'])
+    #         sz_slider = int(values['slider'])
+    #         sz = sz_spin if sz_spin != font_size else sz_slider
+    #         if sz != font_size:
+    #             font_size = sz
+    #             font = f'{values["drop-down"].replace(" ", "")} {str(font_size)}'
+    #             window['text'].update(font=font)
+    #             window['slider'].update(sz)
+    #             window['spin'].update(sz)
+    #
+    #         if event in 'Ok':
+    #             self.config.save(
+    #                 {
+    #                     'hyperlink': {
+    #                         'font': {
+    #                             'size': int(font_size),
+    #                             'name': values['drop-down']
+    #                         }
+    #                     }
+    #                 }
+    #             )
+    #             window.close()
+    #             break
+    #
+    # def color_chooser_menu(self):
+    #     settings = self.config.load()
+    #     img_color = settings['hyperlink']['font']['color']
+    #
+    #     layout = [
+    #         [
+    #             sg.Text('Код цвета:'),
+    #             sg.Input(key='COLOR', readonly=True, size=(7, 1), enable_events=True),
+    #             sg.ColorChooserButton(button_text='Choose color', key='COLOR')
+    #         ],
+    #         [
+    #             sg.Submit(button_text='Ok'),
+    #             sg.Cancel(button_text='Cancel'),
+    #             sg.Text(' Пример цвета:'),
+    #             sg.Button(button_text='', button_color=img_color, size=(2, 1), disabled=True, key='IMG_COLOR'),
+    #         ],
+    #     ]
+    #
+    #     window = sg.Window("Font size selector", layout, grab_anywhere=False)
+    #     # Event Loop
+    #
+    #     while True:
+    #         event, values = window.read()
+    #
+    #         if values['COLOR'] in [None, 'None', '']:
+    #             img_color = '#0563c1'
+    #         else:
+    #             img_color = values['COLOR']
+    #         window['IMG_COLOR'].update(button_color=img_color)
+    #
+    #         if event in (sg.WIN_CLOSED, 'Cancel'):
+    #             window.close()
+    #             break
+    #
+    #         if event in 'Ok':
+    #             hyperlink_color = values['COLOR']
+    #             if hyperlink_color in [None, 'None', '']:
+    #                 hyperlink_color = '#0563c1'
+    #             self.config.save({'hyperlink': {'font': {'color': hyperlink_color}}})
+    #             window.close()
+    #             break
 
     @staticmethod
     def progress_bar(size):
