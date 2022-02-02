@@ -140,6 +140,7 @@ class GUI:
         font_size_list = config.lists['font_size_list']
         underline_style_list = config.lists['underline_style_list']
         header_string_list = config.lists['header_string_list']
+
         column_registry_number = settings['file']['registry_column']['number']
         column_registry_number_is_true = True if settings['file']['registry_column']['true'] == 'number' else False
         column_registry_letter = settings['file']['registry_column']['letter']
@@ -148,6 +149,15 @@ class GUI:
         column_registry_text_is_true = True if settings['file']['registry_column']['true'] == 'text' else False
         column_registry_number_list = config.lists['column_number_list']
         column_registry_letter_list = config.lists['column_letter_list']
+
+        column_hyperlink_number = settings['file']['hyperlink_column']['number']
+        column_hyperlink_number_is_true = True if settings['file']['hyperlink_column']['true'] == 'number' else False
+        column_hyperlink_letter = settings['file']['hyperlink_column']['letter']
+        column_hyperlink_letter_is_true = True if settings['file']['hyperlink_column']['true'] == 'letter' else False
+        column_hyperlink_text = settings['file']['hyperlink_column']['text']
+        column_hyperlink_text_is_true = True if settings['file']['hyperlink_column']['true'] == 'text' else False
+        column_hyperlink_number_list = config.lists['column_number_list']
+        column_hyperlink_letter_list = config.lists['column_letter_list']
 
         left_col = sg.Column([
             [sg.Text(text='Шрифт', auto_size_text=True)],
@@ -175,21 +185,24 @@ class GUI:
                 sg.Text(text='       ', auto_size_text=True),
                 sg.Text(text='Цвет текста:', auto_size_text=True),
                 sg.Button(button_text='', button_color=color, size=(2, 1), disabled=True, key='IMG_COLOR'),
-                sg.Input(key='COLOR', readonly=True, size=(7, 1), visible=False),
+                sg.Input(key='COLOR', readonly=True, size=(7, 1), enable_events=True, visible=False),
                 sg.ColorChooserButton(button_text='Изменить', key='KEY_COLOR'),
             ],
         ]
 
         tab2_layout = [
             [
-                sg.Text(text='Количество строк в шапке таблицы:', auto_size_text=True),
-                sg.DropDown(values=header_string_list, default_value=header_string_count, readonly=True, key='HEADER_STRING_COUNT'),
+                sg.Frame(layout=[
+                    [
+                        sg.Radio(text='Количество строк:', group_id='HEADER_STRING_COUNT_RADIO_GROUP',
+                                 enable_events=False, key='HEADER_STRING_COUNT_RADIO', default=True, size=14),
+                        sg.DropDown(values=header_string_list, default_value=header_string_count, readonly=True,
+                                    key='HEADER_STRING_COUNT', size=3),
+                    ]
+                ], title='Количество строк в шапке таблицы', relief=sg.RELIEF_SUNKEN, size=(460, 50)),
             ],
             [
                 sg.Frame(layout=[
-                    [
-                        sg.Text(text='Задать столбец с регистрационными номерами', auto_size_text=True)
-                    ],
                     [
                         sg.Radio(text='По номеру:', group_id='COLUMN_REGISTRY_NUMBER', enable_events=True, key='NUMBER_COLUMN_REGISTRY_NUMBER_RADIO', default=column_registry_number_is_true, size=14),
                         sg.DropDown(values=column_registry_number_list, default_value=column_registry_number, readonly=True, key='NUMBER_COLUMN_REGISTRY_NUMBER', disabled=False, size=3),
@@ -199,25 +212,52 @@ class GUI:
                         sg.DropDown(values=column_registry_letter_list, default_value=column_registry_letter, readonly=True, key='LETTER_COLUMN_REGISTRY_NUMBER', disabled=False, size=3),
                     ],
                     [
-                        sg.Radio(text='По тексту в ячейке:', group_id='COLUMN_REGISTRY_NUMBER', key='TEXT_COLUMN_REGISTRY_NUMBER_RADIO', enable_events=True, default=column_registry_text_is_true, size=14),
+                        sg.Radio(text='По тексту в шапке:', group_id='COLUMN_REGISTRY_NUMBER', key='TEXT_COLUMN_REGISTRY_NUMBER_RADIO', enable_events=True, default=column_registry_text_is_true, size=14),
                         sg.InputText(default_text=column_registry_text, key='TEXT_COLUMN_REGISTRY_NUMBER', disabled=False, size=42),
                     ],
-                ], title='Выбор столбцов', relief=sg.RELIEF_SUNKEN),
+                ], title='Выбор столбца с регистрационными номерами', relief=sg.RELIEF_SUNKEN),
+            ],
+            [
+                sg.Frame(layout=[
+                    [
+                        sg.Radio(text='По номеру:', group_id='COLUMN_HYPERLINK_NUMBER', enable_events=True,
+                                 key='NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO', default=column_hyperlink_number_is_true,
+                                 size=14),
+                        sg.DropDown(values=column_hyperlink_number_list, default_value=column_hyperlink_number,
+                                    readonly=True, key='NUMBER_COLUMN_HYPERLINK_NUMBER', disabled=False, size=3),
+                    ],
+                    [
+                        sg.Radio(text='По букве:', group_id='COLUMN_HYPERLINK_NUMBER', enable_events=True,
+                                 key='LETTER_COLUMN_HYPERLINK_NUMBER_RADIO', default=column_hyperlink_letter_is_true,
+                                 size=14),
+                        sg.DropDown(values=column_hyperlink_letter_list, default_value=column_hyperlink_letter,
+                                    readonly=True, key='LETTER_COLUMN_HYPERLINK_NUMBER', disabled=False, size=3),
+                    ],
+                    [
+                        sg.Radio(text='По тексту в шапке:', group_id='COLUMN_HYPERLINK_NUMBER',
+                                 key='TEXT_COLUMN_HYPERLINK_NUMBER_RADIO', enable_events=True,
+                                 default=column_hyperlink_text_is_true, size=14),
+                        sg.InputText(default_text=column_hyperlink_text, key='TEXT_COLUMN_HYPERLINK_NUMBER',
+                                     disabled=False, size=42),
+                    ],
+                ], title='Выбор столбца для гиперссылок', relief=sg.RELIEF_SUNKEN),
             ],
         ]
 
         layout = [
             [
-                sg.TabGroup(
-                    [[
+                sg.TabGroup([
+                    [
                         sg.Tab('Шрифт', tab1_layout),
                         sg.Tab('Файл', tab2_layout),
-                    ]], size=(470, 300))
+                    ]
+                ], size=(472, 300))
             ],
             [
-                sg.Button(button_text='По умолчанию', key='SET_DEFAULT_SETTINGS'),
-                sg.Button(button_text='Ок', key='SAVE_SETTINGS'),
-                sg.Button(button_text='Отмена', key='CANCEL_SETTINGS'),
+                sg.Button(button_text='По умолчанию', key='SET_DEFAULT_SETTINGS', size=15),
+                sg.Text(text='', size=27),
+                sg.Button(button_text='Ок', key='SAVE_SETTINGS', size=4),
+                sg.Button(button_text='Отмена', key='CANCEL_SETTINGS', size=6),
             ]
         ]
 

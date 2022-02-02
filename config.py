@@ -86,7 +86,7 @@ default_config = {
         'directory': ''
     },
     'file': {
-        'header_string_count': 2,
+        'header_string_count': 1,
         'registry_column': {
             'letter': 'A',
             'number': 1,
