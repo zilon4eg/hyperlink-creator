@@ -19,9 +19,8 @@ class GUI:
 
         # ------ Menu Definition ------ #
         menu_def = [
-            ['File', ['Exit']],
-            ['Settings', ['Font', 'Hyperlink', 'Test']],
-            ['Help'],
+            ['Меню', ['Настройки', 'Выход']],
+            ['Помощь', ['О приложении']],
         ]
         # ----------------------------- #
         layout = [
@@ -29,26 +28,45 @@ class GUI:
                 sg.Menu(menu_def, tearoff=False)
             ],
             [
-                sg.Text('Путь к файлу реестра: ', size=(17, 1)),
-                sg.InputText(key='file', size=(58, 1)),
-                sg.FileBrowse(target='file', initial_folder=file_path, size=(7, 1))
+                [
+                    sg.Frame(layout=[
+                        [
+                            sg.Checkbox(text='Выбрать автоматически активный лист активного файла Excel',
+                                        default=True, key='WS_CHECKBOX', enable_events=True)
+                        ],
+                        [
+
+                        ],
+                        [
+                            sg.Text(text='Путь к файлу реестра:', visible=True, size=19),
+                            sg.InputText(key='FILE', readonly=True, visible=True, disabled=False),
+                            sg.FileBrowse(button_text='Обзор', target='FILE', initial_folder=file_path, visible=True, disabled=False),
+                        ],
+                        [
+                            sg.Text('Название листа в файле:', visible=True, size=19),
+                            sg.InputText(key='SHEET', visible=True, disabled=False),
+                        ],
+                    ], title='Файл реестра', relief=sg.RELIEF_SUNKEN),
+                ],
             ],
             [
-                sg.Text('Название листа в книге Excel: ', size=(23, 1)),
-                sg.InputText(key='SHEET', size=(32, 1), disabled=True),
-                sg.Checkbox('Использовать активный лист', default=True, key='WS_CHECKBOX', enable_events=True)
-            ],
-            [
-                sg.Text('Путь к папке со сканами: ', size=(19, 1)),
-                sg.InputText(key='folder', size=(56, 1)),
-                sg.FolderBrowse(target='folder', initial_folder=dir_path, size=(7, 1))
+                [
+                    sg.Frame(layout=[
+                        [
+                            sg.Text('Путь к папке со сканами:', visible=True, size=19),
+                            sg.InputText(key='FOLDER'),
+                            sg.FolderBrowse(button_text='Обзор', target='FOLDER', initial_folder=dir_path)
+                        ],
+                    ], title='Папка со сканами', relief=sg.RELIEF_SUNKEN),
+                ],
             ],
             [
                 sg.Output(size=(88, 20))
             ],
             [
-                sg.Submit(button_text='Start'),
-                sg.Cancel(button_text='Exit'),
+                sg.Submit(button_text='Запуск', key='START'),
+                sg.Submit(button_text='Настройки', key='SETTINGS'),
+                sg.Cancel(button_text='Выход', key='EXIT'),
             ]
         ]
 
@@ -56,27 +74,19 @@ class GUI:
 
         while True:  # The Event Loop
             event, values = window_main.read()
-            # print(event, values) #debug
+            print('event', event)
+            print('values', values)
 
-            if event in (None, 'Exit', 'Cancel', sg.WINDOW_CLOSED):
+            if event in ['EXIT', 'Выход', sg.WINDOW_CLOSED]:
+                window_main.close()
                 break
 
             if values['WS_CHECKBOX'] is True:
-                window_main['SHEET'].update('', disabled=True)
+                window_main['SHEET'].update(value='', disabled=True)
             else:
                 window_main['SHEET'].update(disabled=False)
 
-            if event in 'Font':
-                window_main.hide()
-                self.font_menu()
-                window_main.UnHide()
-
-            elif event in 'Hyperlink':
-                window_main.hide()
-                self.color_chooser_menu()
-                window_main.UnHide()
-
-            elif event in 'Test':
+            if event in ['SETTINGS', 'Настройки']:
                 self.settings_menu()
 
             elif event in 'Start':
@@ -142,20 +152,26 @@ class GUI:
         header_string_list = config.lists['header_string_list']
 
         column_registry_number = settings['file']['registry_column']['number']
-        column_registry_number_is_true = True if settings['file']['registry_column']['true'] == 'number' else False
+        column_registry_number_is_disabled = False if settings['file']['registry_column']['enabled'] == 'number' else True
+        column_registry_number_is_default = False if column_registry_number_is_disabled else True
         column_registry_letter = settings['file']['registry_column']['letter']
-        column_registry_letter_is_true = True if settings['file']['registry_column']['true'] == 'letter' else False
+        column_registry_letter_is_disabled = False if settings['file']['registry_column']['enabled'] == 'letter' else True
+        column_registry_letter_is_default = False if column_registry_letter_is_disabled else True
         column_registry_text = settings['file']['registry_column']['text']
-        column_registry_text_is_true = True if settings['file']['registry_column']['true'] == 'text' else False
+        column_registry_text_is_disabled = False if settings['file']['registry_column']['enabled'] == 'text' else True
+        column_registry_text_is_default = False if column_registry_text_is_disabled else True
         column_registry_number_list = config.lists['column_number_list']
         column_registry_letter_list = config.lists['column_letter_list']
 
         column_hyperlink_number = settings['file']['hyperlink_column']['number']
-        column_hyperlink_number_is_true = True if settings['file']['hyperlink_column']['true'] == 'number' else False
+        column_hyperlink_number_is_disabled = False if settings['file']['hyperlink_column']['enabled'] == 'number' else True
+        column_hyperlink_number_is_default = False if column_hyperlink_number_is_disabled else True
         column_hyperlink_letter = settings['file']['hyperlink_column']['letter']
-        column_hyperlink_letter_is_true = True if settings['file']['hyperlink_column']['true'] == 'letter' else False
+        column_hyperlink_letter_is_disabled = False if settings['file']['hyperlink_column']['enabled'] == 'letter' else True
+        column_hyperlink_letter_is_default = False if column_hyperlink_letter_is_disabled else True
         column_hyperlink_text = settings['file']['hyperlink_column']['text']
-        column_hyperlink_text_is_true = True if settings['file']['hyperlink_column']['true'] == 'text' else False
+        column_hyperlink_text_is_disabled = False if settings['file']['hyperlink_column']['enabled'] == 'text' else True
+        column_hyperlink_text_is_default = False if column_hyperlink_text_is_disabled else True
         column_hyperlink_number_list = config.lists['column_number_list']
         column_hyperlink_letter_list = config.lists['column_letter_list']
 
@@ -177,7 +193,7 @@ class GUI:
             [sg.Listbox(values=font_size_list, default_values=[font_size], key='FONT_SIZE_LIST', enable_events=True, size=(6, 8))],
         ], size=(70, 220))
 
-        tab1_layout = [
+        tab_font_layout = [
             [left_col, mid_col, right_col],
             [
                 sg.Text(text='  Подчеркивание:', auto_size_text=True),
@@ -190,55 +206,108 @@ class GUI:
             ],
         ]
 
-        tab2_layout = [
+        tab_file_layout = [
             [
                 sg.Frame(layout=[
                     [
-                        sg.Radio(text='Количество строк:', group_id='HEADER_STRING_COUNT_RADIO_GROUP',
-                                 enable_events=False, key='HEADER_STRING_COUNT_RADIO', default=True, size=14),
-                        sg.DropDown(values=header_string_list, default_value=header_string_count, readonly=True,
-                                    key='HEADER_STRING_COUNT', size=3),
+                        sg.Radio(text='Количество строк:',
+                                 group_id='HEADER_STRING_COUNT_RADIO_GROUP',
+                                 enable_events=False,
+                                 key='HEADER_STRING_COUNT_RADIO',
+                                 default=True,
+                                 size=14),
+                        sg.DropDown(values=header_string_list,
+                                    default_value=header_string_count,
+                                    readonly=True,
+                                    key='HEADER_STRING_COUNT',
+                                    size=3),
                     ]
                 ], title='Количество строк в шапке таблицы', relief=sg.RELIEF_SUNKEN, size=(460, 50)),
             ],
             [
                 sg.Frame(layout=[
                     [
-                        sg.Radio(text='По номеру:', group_id='COLUMN_REGISTRY_NUMBER', enable_events=True, key='NUMBER_COLUMN_REGISTRY_NUMBER_RADIO', default=column_registry_number_is_true, size=14),
-                        sg.DropDown(values=column_registry_number_list, default_value=column_registry_number, readonly=True, key='NUMBER_COLUMN_REGISTRY_NUMBER', disabled=False, size=3),
+                        sg.Radio(text='По номеру:',
+                                 group_id='COLUMN_REGISTRY_NUMBER',
+                                 enable_events=True,
+                                 key='NUMBER_COLUMN_REGISTRY_NUMBER_RADIO',
+                                 default=column_registry_number_is_default,
+                                 size=14),
+                        sg.DropDown(values=column_registry_number_list,
+                                    default_value=column_registry_number,
+                                    readonly=True,
+                                    key='NUMBER_COLUMN_REGISTRY_NUMBER',
+                                    disabled=column_registry_number_is_disabled,
+                                    size=3),
                     ],
                     [
-                        sg.Radio(text='По букве:', group_id='COLUMN_REGISTRY_NUMBER', enable_events=True, key='LETTER_COLUMN_REGISTRY_NUMBER_RADIO', default=column_registry_letter_is_true, size=14),
-                        sg.DropDown(values=column_registry_letter_list, default_value=column_registry_letter, readonly=True, key='LETTER_COLUMN_REGISTRY_NUMBER', disabled=False, size=3),
+                        sg.Radio(text='По букве:',
+                                 group_id='COLUMN_REGISTRY_NUMBER',
+                                 enable_events=True, key='LETTER_COLUMN_REGISTRY_NUMBER_RADIO',
+                                 default=column_registry_letter_is_default,
+                                 size=14),
+                        sg.DropDown(values=column_registry_letter_list,
+                                    default_value=column_registry_letter,
+                                    readonly=True,
+                                    key='LETTER_COLUMN_REGISTRY_NUMBER',
+                                    disabled=column_registry_letter_is_disabled,
+                                    size=3),
                     ],
                     [
-                        sg.Radio(text='По тексту в шапке:', group_id='COLUMN_REGISTRY_NUMBER', key='TEXT_COLUMN_REGISTRY_NUMBER_RADIO', enable_events=True, default=column_registry_text_is_true, size=14),
-                        sg.InputText(default_text=column_registry_text, key='TEXT_COLUMN_REGISTRY_NUMBER', disabled=False, size=42),
+                        sg.Radio(text='По тексту в шапке:',
+                                 group_id='COLUMN_REGISTRY_NUMBER',
+                                 key='TEXT_COLUMN_REGISTRY_NUMBER_RADIO',
+                                 enable_events=True,
+                                 default=column_registry_text_is_default,
+                                 size=14),
+                        sg.InputText(default_text=column_registry_text,
+                                     key='TEXT_COLUMN_REGISTRY_NUMBER',
+                                     disabled=column_hyperlink_text_is_disabled,
+                                     size=42),
                     ],
                 ], title='Выбор столбца с регистрационными номерами', relief=sg.RELIEF_SUNKEN),
             ],
             [
                 sg.Frame(layout=[
                     [
-                        sg.Radio(text='По номеру:', group_id='COLUMN_HYPERLINK_NUMBER', enable_events=True,
-                                 key='NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO', default=column_hyperlink_number_is_true,
+                        sg.Radio(text='По номеру:',
+                                 group_id='COLUMN_HYPERLINK_NUMBER',
+                                 enable_events=True,
+                                 key='NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO',
+                                 default=column_hyperlink_number_is_default,
                                  size=14),
-                        sg.DropDown(values=column_hyperlink_number_list, default_value=column_hyperlink_number,
-                                    readonly=True, key='NUMBER_COLUMN_HYPERLINK_NUMBER', disabled=False, size=3),
+                        sg.DropDown(values=column_hyperlink_number_list,
+                                    default_value=column_hyperlink_number,
+                                    readonly=True,
+                                    key='NUMBER_COLUMN_HYPERLINK_NUMBER',
+                                    disabled=column_hyperlink_number_is_disabled,
+                                    size=3),
                     ],
                     [
-                        sg.Radio(text='По букве:', group_id='COLUMN_HYPERLINK_NUMBER', enable_events=True,
-                                 key='LETTER_COLUMN_HYPERLINK_NUMBER_RADIO', default=column_hyperlink_letter_is_true,
+                        sg.Radio(text='По букве:',
+                                 group_id='COLUMN_HYPERLINK_NUMBER',
+                                 enable_events=True,
+                                 key='LETTER_COLUMN_HYPERLINK_NUMBER_RADIO',
+                                 default=column_hyperlink_letter_is_default,
                                  size=14),
-                        sg.DropDown(values=column_hyperlink_letter_list, default_value=column_hyperlink_letter,
-                                    readonly=True, key='LETTER_COLUMN_HYPERLINK_NUMBER', disabled=False, size=3),
+                        sg.DropDown(values=column_hyperlink_letter_list,
+                                    default_value=column_hyperlink_letter,
+                                    readonly=True,
+                                    key='LETTER_COLUMN_HYPERLINK_NUMBER',
+                                    disabled=column_hyperlink_letter_is_disabled,
+                                    size=3),
                     ],
                     [
-                        sg.Radio(text='По тексту в шапке:', group_id='COLUMN_HYPERLINK_NUMBER',
-                                 key='TEXT_COLUMN_HYPERLINK_NUMBER_RADIO', enable_events=True,
-                                 default=column_hyperlink_text_is_true, size=14),
-                        sg.InputText(default_text=column_hyperlink_text, key='TEXT_COLUMN_HYPERLINK_NUMBER',
-                                     disabled=False, size=42),
+                        sg.Radio(text='По тексту в шапке:',
+                                 group_id='COLUMN_HYPERLINK_NUMBER',
+                                 key='TEXT_COLUMN_HYPERLINK_NUMBER_RADIO',
+                                 enable_events=True,
+                                 default=column_hyperlink_text_is_default,
+                                 size=14),
+                        sg.InputText(default_text=column_hyperlink_text,
+                                     key='TEXT_COLUMN_HYPERLINK_NUMBER',
+                                     disabled=column_hyperlink_text_is_disabled,
+                                     size=42),
                     ],
                 ], title='Выбор столбца для гиперссылок', relief=sg.RELIEF_SUNKEN),
             ],
@@ -248,10 +317,10 @@ class GUI:
             [
                 sg.TabGroup([
                     [
-                        sg.Tab('Шрифт', tab1_layout),
-                        sg.Tab('Файл', tab2_layout),
+                        sg.Tab('Шрифт', tab_font_layout, key='TAB_FONT'),
+                        sg.Tab('Файл', tab_file_layout, key='TAB_FILE'),
                     ]
-                ], size=(472, 300))
+                ], size=(472, 300), key='SETTINGS_TABS')
             ],
             [
                 sg.Button(button_text='По умолчанию', key='SET_DEFAULT_SETTINGS', size=15),
@@ -265,18 +334,17 @@ class GUI:
 
         while True:
             event, values = window.read()
-            print('event =', event)
-            print('values =', values)
+            # print('event =', event)
+            # print('values =', values)
             # ===(exit if)===
             if event in [sg.WIN_CLOSED, 'CANCEL_SETTINGS']:  # always,  always give a way out!
                 window.close()
                 break
             # ===(update color)===
             if values['COLOR'] in [None, 'None', '']:
-                img_color = '#0563c1'
+                window['IMG_COLOR'].update(button_color='#0563c1')
             else:
-                img_color = values['COLOR']
-            window['IMG_COLOR'].update(button_color=img_color)
+                window['IMG_COLOR'].update(button_color=values['COLOR'])
             # ===(update font name)===
             if event in 'FONT_NAME_LIST':
                 font_name = values['FONT_NAME_LIST']
@@ -293,6 +361,7 @@ class GUI:
             if event in 'SET_DEFAULT_SETTINGS':
                 # ===(set default variables)===
                 def_settings = config.default_config
+                # ===(tab font variables)===
                 def_img_color = def_settings['font']['color']
                 def_underline_style = GUI.underline_style_text(def_settings)
                 def_font_name = def_settings['font']['name']
@@ -301,118 +370,129 @@ class GUI:
                 def_index_font_size = config.lists['font_size_list'].index(def_font_size)
                 def_font_style = GUI.font_style_text(def_settings)
                 def_index_font_style = config.lists['font_style_list'].index(def_font_style)
+                # ===(tab file variables)===
+                def_header_string_count = def_settings['file']['header_string_count']
+
+                def_column_registry_number_is_default = True if def_settings['file']['registry_column']['enabled'] == 'number' else False
+                def_column_registry_number = def_settings['file']['registry_column']['number']
+                def_column_registry_number_is_disabled = False if def_settings['file']['registry_column']['enabled'] == 'number' else True
+                def_column_registry_letter_is_default = True if def_settings['file']['registry_column']['enabled'] == 'letter' else False
+                def_column_registry_letter = def_settings['file']['registry_column']['letter']
+                def_column_registry_letter_is_disabled = False if def_settings['file']['registry_column']['enabled'] == 'letter' else True
+                def_column_registry_text_is_default = True if def_settings['file']['registry_column']['enabled'] == 'text' else False
+                def_column_registry_text = def_settings['file']['registry_column']['text']
+                def_column_registry_text_is_disabled = False if def_settings['file']['registry_column']['enabled'] == 'text' else True
+
+                def_column_hyperlink_number_is_default = True if def_settings['file']['hyperlink_column']['enabled'] == 'number' else False
+                def_column_hyperlink_number = def_settings['file']['hyperlink_column']['number']
+                def_column_hyperlink_number_is_disabled = False if def_settings['file']['hyperlink_column']['enabled'] == 'number' else True
+                def_column_hyperlink_letter_is_default = True if def_settings['file']['hyperlink_column']['enabled'] == 'letter' else False
+                def_column_hyperlink_letter = def_settings['file']['hyperlink_column']['letter']
+                def_column_hyperlink_letter_is_disabled = False if def_settings['file']['hyperlink_column']['enabled'] == 'letter' else True
+                def_column_hyperlink_text_is_default = True if def_settings['file']['hyperlink_column']['enabled'] == 'text' else False
+                def_column_hyperlink_text = def_settings['file']['hyperlink_column']['text']
+                def_column_hyperlink_text_is_disabled = False if def_settings['file']['hyperlink_column']['enabled'] == 'text' else True
                 # ===(set fields with default variables)===
-                window['IMG_COLOR'].update(button_color=def_img_color)
-                window['COLOR'].update(value=def_img_color)
-                window['UNDERLINE_STYLE_LIST'].update(value=def_underline_style)
-                window['FONT_NAME'].update(value=def_font_name)
-                window['FONT_NAME_LIST'].update(set_to_index=def_index_font_name)
-                window['FONT_SIZE'].update(value=def_font_size)
-                window['FONT_SIZE_LIST'].update(set_to_index=def_index_font_size)
-                window['FONT_STYLE'].update(value=def_font_style)
-                window['FONT_STYLE_LIST'].update(set_to_index=def_index_font_style)
+                # ===(tab font)===
+                if values['SETTINGS_TABS'] == 'TAB_FONT':
+                    window['IMG_COLOR'].update(button_color=def_img_color)
+                    window['COLOR'].update(value=def_img_color)
+                    window['UNDERLINE_STYLE_LIST'].update(value=def_underline_style)
+                    window['FONT_NAME'].update(value=def_font_name)
+                    window['FONT_NAME_LIST'].update(set_to_index=def_index_font_name)
+                    window['FONT_SIZE'].update(value=def_font_size)
+                    window['FONT_SIZE_LIST'].update(set_to_index=def_index_font_size)
+                    window['FONT_STYLE'].update(value=def_font_style)
+                    window['FONT_STYLE_LIST'].update(set_to_index=def_index_font_style)
+                # ===(tab file)===
+                elif values['SETTINGS_TABS'] == 'TAB_FILE':
+                    window['HEADER_STRING_COUNT'].update(value=def_header_string_count)
+                    window['NUMBER_COLUMN_REGISTRY_NUMBER_RADIO'].update(value=def_column_registry_number_is_default)
+                    window['NUMBER_COLUMN_REGISTRY_NUMBER'].update(value=def_column_registry_number)
+                    window['NUMBER_COLUMN_REGISTRY_NUMBER'].update(disabled=def_column_registry_number_is_disabled)
+                    window['LETTER_COLUMN_REGISTRY_NUMBER_RADIO'].update(value=def_column_registry_letter_is_default)
+                    window['LETTER_COLUMN_REGISTRY_NUMBER'].update(value=def_column_registry_letter)
+                    window['LETTER_COLUMN_REGISTRY_NUMBER'].update(disabled=def_column_registry_letter_is_disabled)
+                    window['TEXT_COLUMN_REGISTRY_NUMBER_RADIO'].update(value=def_column_registry_text_is_default)
+                    window['TEXT_COLUMN_REGISTRY_NUMBER'].update(value=def_column_registry_text)
+                    window['TEXT_COLUMN_REGISTRY_NUMBER'].update(disabled=def_column_registry_text_is_disabled)
+                    window['NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO'].update(value=def_column_hyperlink_number_is_default)
+                    window['NUMBER_COLUMN_HYPERLINK_NUMBER'].update(value=def_column_hyperlink_number)
+                    window['NUMBER_COLUMN_HYPERLINK_NUMBER'].update(disabled=def_column_hyperlink_number_is_disabled)
+                    window['LETTER_COLUMN_HYPERLINK_NUMBER_RADIO'].update(value=def_column_hyperlink_letter_is_default)
+                    window['LETTER_COLUMN_HYPERLINK_NUMBER'].update(value=def_column_hyperlink_letter)
+                    window['LETTER_COLUMN_HYPERLINK_NUMBER'].update(disabled=def_column_hyperlink_letter_is_disabled)
+                    window['TEXT_COLUMN_HYPERLINK_NUMBER_RADIO'].update(value=def_column_hyperlink_text_is_default)
+                    window['TEXT_COLUMN_HYPERLINK_NUMBER'].update(value=def_column_hyperlink_text)
+                    window['TEXT_COLUMN_HYPERLINK_NUMBER'].update(disabled=def_column_hyperlink_text_is_disabled)
+            # ===(set registry column)===
+            if event in 'NUMBER_COLUMN_REGISTRY_NUMBER_RADIO':
+                window['NUMBER_COLUMN_REGISTRY_NUMBER'].update(disabled=False)
+                window['LETTER_COLUMN_REGISTRY_NUMBER'].update(disabled=True)
+                window['TEXT_COLUMN_REGISTRY_NUMBER'].update(disabled=True)
+            elif event in 'LETTER_COLUMN_REGISTRY_NUMBER_RADIO':
+                window['NUMBER_COLUMN_REGISTRY_NUMBER'].update(disabled=True)
+                window['LETTER_COLUMN_REGISTRY_NUMBER'].update(disabled=False)
+                window['TEXT_COLUMN_REGISTRY_NUMBER'].update(disabled=True)
+            elif event in 'TEXT_COLUMN_REGISTRY_NUMBER_RADIO':
+                window['NUMBER_COLUMN_REGISTRY_NUMBER'].update(disabled=True)
+                window['LETTER_COLUMN_REGISTRY_NUMBER'].update(disabled=True)
+                window['TEXT_COLUMN_REGISTRY_NUMBER'].update(disabled=False)
+            # ===(set hyperlink column)===
+            if event in 'NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO':
+                window['NUMBER_COLUMN_HYPERLINK_NUMBER'].update(disabled=False)
+                window['LETTER_COLUMN_HYPERLINK_NUMBER'].update(disabled=True)
+                window['TEXT_COLUMN_HYPERLINK_NUMBER'].update(disabled=True)
+            elif event in 'LETTER_COLUMN_HYPERLINK_NUMBER_RADIO':
+                window['NUMBER_COLUMN_HYPERLINK_NUMBER'].update(disabled=True)
+                window['LETTER_COLUMN_HYPERLINK_NUMBER'].update(disabled=False)
+                window['TEXT_COLUMN_HYPERLINK_NUMBER'].update(disabled=True)
+            elif event in 'TEXT_COLUMN_HYPERLINK_NUMBER_RADIO':
+                window['NUMBER_COLUMN_HYPERLINK_NUMBER'].update(disabled=True)
+                window['LETTER_COLUMN_HYPERLINK_NUMBER'].update(disabled=True)
+                window['TEXT_COLUMN_HYPERLINK_NUMBER'].update(disabled=False)
+            # ===(save settings)===
+            if event in 'SAVE_SETTINGS':
+                if values['LETTER_COLUMN_REGISTRY_NUMBER_RADIO']:
+                    registry_column_enabled = 'letter'
+                elif values['NUMBER_COLUMN_REGISTRY_NUMBER_RADIO']:
+                    registry_column_enabled = 'number'
+                elif values['NUMBER_COLUMN_REGISTRY_NUMBER_RADIO']:
+                    registry_column_enabled = 'text'
+                else:
+                    registry_column_enabled = config.default_config['file']['registry_column']['enabled']
 
+                if values['LETTER_COLUMN_HYPERLINK_NUMBER_RADIO']:
+                    hyperlink_column_enabled = 'letter'
+                elif values['NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO']:
+                    hyperlink_column_enabled = 'number'
+                elif values['NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO']:
+                    hyperlink_column_enabled = 'text'
+                else:
+                    hyperlink_column_enabled = config.default_config['file']['hyperlink_column']['enabled']
+
+                settings = {
+                    'file': {
+                        'header_string_count': values['HEADER_STRING_COUNT'],
+                        'registry_column': {
+                            'letter': values['LETTER_COLUMN_REGISTRY_NUMBER'],
+                            'number': values['NUMBER_COLUMN_REGISTRY_NUMBER'],
+                            'text': values['TEXT_COLUMN_REGISTRY_NUMBER'],
+                            'enabled': registry_column_enabled
+                        },
+                        'hyperlink_column': {
+                            'letter': values['LETTER_COLUMN_HYPERLINK_NUMBER'],
+                            'number': values['NUMBER_COLUMN_HYPERLINK_NUMBER'],
+                            'text': values['TEXT_COLUMN_HYPERLINK_NUMBER'],
+                            'enabled': hyperlink_column_enabled
+                        },
+                    }
+                }
+
+                self.config.save(settings)
+                window.close()
+                break
         pass
-
-    # def font_menu(self):
-    #     settings = self.config.load()
-    #     font_list = settings['font_list']
-    #     font_name = settings['hyperlink']['font']['name']
-    #     font_size = settings['hyperlink']['font']['size']
-    #
-    #     layout = [
-    #         [
-    #             sg.Combo(font_list, default_value=font_name, key='drop-down', enable_events=True)
-    #         ],
-    #         [
-    #             sg.Spin([sz for sz in range(10, 21)], font='Arial 20', initial_value=font_size,
-    #                              change_submits=True, key='spin'),
-    #             sg.Slider(range=(10, 20), orientation='h', size=(10, 25), change_submits=True,
-    #                                key='slider', font=f'{font_name.replace(" ", "")} 20', default_value=font_size),
-    #             sg.Text("Ab", size=(2, 1), font=f'{font_name.replace(" ", "")} {str(font_size)}', key='text')
-    #         ],
-    #         [
-    #             sg.Submit(button_text='Ok'),
-    #             sg.Cancel(button_text='Cancel')
-    #         ]
-    #     ]
-    #
-    #     window = sg.Window("Font size selector", layout, grab_anywhere=False)
-    #     # Event Loop
-    #
-    #     while True:
-    #         event, values = window.read()
-    #
-    #         window['text'].update(font=f'{values["drop-down"].replace(" ", "")} {str(font_size)}')
-    #
-    #         if event in (sg.WIN_CLOSED, 'Cancel'):
-    #             window.close()
-    #             break
-    #         sz_spin = int(values['spin'])
-    #         sz_slider = int(values['slider'])
-    #         sz = sz_spin if sz_spin != font_size else sz_slider
-    #         if sz != font_size:
-    #             font_size = sz
-    #             font = f'{values["drop-down"].replace(" ", "")} {str(font_size)}'
-    #             window['text'].update(font=font)
-    #             window['slider'].update(sz)
-    #             window['spin'].update(sz)
-    #
-    #         if event in 'Ok':
-    #             self.config.save(
-    #                 {
-    #                     'hyperlink': {
-    #                         'font': {
-    #                             'size': int(font_size),
-    #                             'name': values['drop-down']
-    #                         }
-    #                     }
-    #                 }
-    #             )
-    #             window.close()
-    #             break
-    #
-    # def color_chooser_menu(self):
-    #     settings = self.config.load()
-    #     img_color = settings['hyperlink']['font']['color']
-    #
-    #     layout = [
-    #         [
-    #             sg.Text('Код цвета:'),
-    #             sg.Input(key='COLOR', readonly=True, size=(7, 1), enable_events=True),
-    #             sg.ColorChooserButton(button_text='Choose color', key='COLOR')
-    #         ],
-    #         [
-    #             sg.Submit(button_text='Ok'),
-    #             sg.Cancel(button_text='Cancel'),
-    #             sg.Text(' Пример цвета:'),
-    #             sg.Button(button_text='', button_color=img_color, size=(2, 1), disabled=True, key='IMG_COLOR'),
-    #         ],
-    #     ]
-    #
-    #     window = sg.Window("Font size selector", layout, grab_anywhere=False)
-    #     # Event Loop
-    #
-    #     while True:
-    #         event, values = window.read()
-    #
-    #         if values['COLOR'] in [None, 'None', '']:
-    #             img_color = '#0563c1'
-    #         else:
-    #             img_color = values['COLOR']
-    #         window['IMG_COLOR'].update(button_color=img_color)
-    #
-    #         if event in (sg.WIN_CLOSED, 'Cancel'):
-    #             window.close()
-    #             break
-    #
-    #         if event in 'Ok':
-    #             hyperlink_color = values['COLOR']
-    #             if hyperlink_color in [None, 'None', '']:
-    #                 hyperlink_color = '#0563c1'
-    #             self.config.save({'hyperlink': {'font': {'color': hyperlink_color}}})
-    #             window.close()
-    #             break
 
     @staticmethod
     def progress_bar(size):

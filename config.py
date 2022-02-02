@@ -91,13 +91,13 @@ default_config = {
             'letter': 'A',
             'number': 1,
             'text': 'Вх. №',
-            'true': 'number'
+            'enabled': 'number'
         },
         'hyperlink_column': {
             'letter': 'M',
             'number': 13,
             'text': 'Скан образ документа',
-            'true': 'text'
+            'enabled': 'text'
         },
     }
 }
