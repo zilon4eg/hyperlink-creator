@@ -82,6 +82,7 @@ default_config = {
 
     },
     'path': {
+        'autoselection': True,
         'file': '',
         'directory': ''
     },

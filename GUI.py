@@ -23,6 +23,8 @@ class GUI:
             ['Помощь', ['О приложении']],
         ]
         # ----------------------------- #
+        autoselection_is_true = settings['path']['autoselection']
+
         layout = [
             [
                 sg.Menu(menu_def, tearoff=False)
@@ -31,22 +33,22 @@ class GUI:
                 [
                     sg.Frame(layout=[
                         [
-                            sg.Checkbox(text='Выбрать автоматически активный лист активного файла Excel',
-                                        default=True, key='WS_CHECKBOX', enable_events=True)
+                            sg.Checkbox(text='Выбрать автоматически активный лист открытого файла Excel',
+                                        default=autoselection_is_true, key='AUTOSELECTION', enable_events=True)
                         ],
                         [
 
                         ],
                         [
-                            sg.Text(text='Путь к файлу реестра:', visible=True, size=19),
-                            sg.InputText(key='FILE', readonly=True, visible=True, disabled=False),
-                            sg.FileBrowse(button_text='Обзор', target='FILE', initial_folder=file_path, visible=True, disabled=False),
+                            sg.Text(text='Путь к файлу реестра:', key='FILE_TEXT', visible=True, size=19),
+                            sg.InputText(key='FILE', readonly=True, visible=True, disabled=False, size=56),
+                            sg.FileBrowse(button_text='Обзор', target='FILE', initial_folder=file_path, key='FILE_BROWSE', visible=True, disabled=False),
                         ],
                         [
-                            sg.Text('Название листа в файле:', visible=True, size=19),
-                            sg.InputText(key='SHEET', visible=True, disabled=False),
+                            sg.Text('Название листа в файле:', key='SHEET_TEXT', visible=True, size=19),
+                            sg.InputText(key='SHEET', visible=True, disabled=False, size=56),
                         ],
-                    ], title='Файл реестра', relief=sg.RELIEF_SUNKEN),
+                    ], title='Файл реестра', relief=sg.RELIEF_SUNKEN, size=(638, 116)),
                 ],
             ],
             [
@@ -54,10 +56,10 @@ class GUI:
                     sg.Frame(layout=[
                         [
                             sg.Text('Путь к папке со сканами:', visible=True, size=19),
-                            sg.InputText(key='FOLDER'),
+                            sg.InputText(key='FOLDER', size=56),
                             sg.FolderBrowse(button_text='Обзор', target='FOLDER', initial_folder=dir_path)
                         ],
-                    ], title='Папка со сканами', relief=sg.RELIEF_SUNKEN),
+                    ], title='Папка со сканами', relief=sg.RELIEF_SUNKEN, size=(638, 56)),
                 ],
             ],
             [
@@ -81,10 +83,18 @@ class GUI:
                 window_main.close()
                 break
 
-            if values['WS_CHECKBOX'] is True:
-                window_main['SHEET'].update(value='', disabled=True)
+            if values['AUTOSELECTION'] is True:
+                window_main['FILE_TEXT'].update(visible=False)
+                window_main['FILE'].update(visible=False)
+                window_main['FILE_BROWSE'].update(disabled=True, visible=False)
+                window_main['SHEET_TEXT'].update(visible=False)
+                window_main['SHEET'].update(value='', disabled=True, visible=False)
             else:
-                window_main['SHEET'].update(disabled=False)
+                window_main['FILE_TEXT'].update(visible=True)
+                window_main['FILE'].update(visible=True)
+                window_main['FILE_BROWSE'].update(disabled=False, visible=True)
+                window_main['SHEET_TEXT'].update(visible=True)
+                window_main['SHEET'].update(disabled=False, visible=True)
 
             if event in ['SETTINGS', 'Настройки']:
                 self.settings_menu()
@@ -101,7 +111,7 @@ class GUI:
 
                 registry_path = values['file']
 
-                if not values['WS_CHECKBOX']:
+                if not values['AUTOSELECTION']:
                     ws_name = values['SHEET']
                 else:
                     ws_name = True
