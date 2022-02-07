@@ -1,4 +1,5 @@
 import xlwings
+from openpyxl import load_workbook
 
 
 class Excel:
@@ -69,6 +70,13 @@ class Excel:
             return True
         else:
             return False
+    pass
+
+
+def get_all_ws(file_path):
+    wb = load_workbook(file_path)
+    ws_list = wb.sheetnames
+    return ws_list
 
 
 if __name__ == '__main__':

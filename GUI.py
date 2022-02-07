@@ -3,6 +3,7 @@ import PySimpleGUI as sg
 
 import config
 import registry
+import xls_w
 from config import Config
 
 
@@ -24,6 +25,9 @@ class GUI:
         ]
         # ----------------------------- #
         autoselection_is_true = settings['path']['autoselection']
+        section_is_visible = False if settings['path']['autoselection'] else True
+        section_is_disable = settings['path']['autoselection']
+        registry_section_size = (638, 56) if settings['path']['autoselection'] else (638, 116)
 
         layout = [
             [
@@ -40,15 +44,16 @@ class GUI:
 
                         ],
                         [
-                            sg.Text(text='Путь к файлу реестра:', key='FILE_TEXT', visible=True, size=19),
-                            sg.InputText(key='FILE', readonly=True, visible=True, disabled=False, size=56),
-                            sg.FileBrowse(button_text='Обзор', target='FILE', initial_folder=file_path, key='FILE_BROWSE', visible=True, disabled=False),
+                            sg.pin(sg.Text(text='Путь к файлу реестра:', key='FILE_TEXT', visible=section_is_visible, size=19)),
+                            sg.pin(sg.InputText(key='FILE', readonly=True, visible=section_is_visible, disabled=section_is_disable, enable_events=True, size=56)),
+                            sg.pin(sg.FileBrowse(button_text='Обзор', target='FILE', initial_folder=file_path, key='FILE_BROWSE', visible=section_is_visible, disabled=section_is_disable)),
                         ],
                         [
-                            sg.Text('Название листа в файле:', key='SHEET_TEXT', visible=True, size=19),
-                            sg.InputText(key='SHEET', visible=True, disabled=False, size=56),
+                            sg.pin(sg.Text('Название листа в файле:', key='SHEET_TEXT', visible=section_is_visible, size=19)),
+                            # sg.pin(sg.InputText(key='SHEET', visible=section_is_visible, disabled=section_is_disable, size=56)),
+                            sg.pin(sg.DropDown(values=[], key='SHEETS', readonly=True, visible=section_is_visible, disabled=section_is_disable, size=56)),
                         ],
-                    ], title='Файл реестра', relief=sg.RELIEF_SUNKEN, size=(638, 116)),
+                    ], title='Файл реестра', relief=sg.RELIEF_SUNKEN, size=registry_section_size, key='REGISTRY_SECTION'),
                 ],
             ],
             [
@@ -59,7 +64,7 @@ class GUI:
                             sg.InputText(key='FOLDER', size=56),
                             sg.FolderBrowse(button_text='Обзор', target='FOLDER', initial_folder=dir_path)
                         ],
-                    ], title='Папка со сканами', relief=sg.RELIEF_SUNKEN, size=(638, 56)),
+                    ], title='Папка со сканами', relief=sg.RELIEF_SUNKEN, size=registry_section_size),
                 ],
             ],
             [
@@ -83,18 +88,28 @@ class GUI:
                 window_main.close()
                 break
 
+            if values['AUTOSELECTION'] is False and str(values['FILE'])[values['FILE'].rfind('.') + 1:] == 'xlsx':
+                ws_list = xls_w.get_all_ws(values['FILE'])
+                window_main['SHEETS'].update(values=ws_list)
+                pass
+
+
             if values['AUTOSELECTION'] is True:
                 window_main['FILE_TEXT'].update(visible=False)
                 window_main['FILE'].update(visible=False)
                 window_main['FILE_BROWSE'].update(disabled=True, visible=False)
                 window_main['SHEET_TEXT'].update(visible=False)
-                window_main['SHEET'].update(value='', disabled=True, visible=False)
+                window_main['SHEETS'].update(value='', disabled=True, visible=False)
+                registry_section_size = (638, 56)
+                window_main['REGISTRY_SECTION'].set_size(registry_section_size)
             else:
+                registry_section_size = (638, 116)
+                window_main['REGISTRY_SECTION'].set_size(registry_section_size)
                 window_main['FILE_TEXT'].update(visible=True)
                 window_main['FILE'].update(visible=True)
                 window_main['FILE_BROWSE'].update(disabled=False, visible=True)
                 window_main['SHEET_TEXT'].update(visible=True)
-                window_main['SHEET'].update(disabled=False, visible=True)
+                window_main['SHEETS'].update(disabled=False, visible=True)
 
             if event in ['SETTINGS', 'Настройки']:
                 self.settings_menu()
