@@ -41,17 +41,13 @@ class GUI:
                                         default=autoselection_is_true, key='AUTOSELECTION', enable_events=True)
                         ],
                         [
-
-                        ],
-                        [
                             sg.pin(sg.Text(text='Путь к файлу реестра:', key='FILE_TEXT', visible=section_is_visible, size=19)),
                             sg.pin(sg.InputText(key='FILE', readonly=True, visible=section_is_visible, disabled=section_is_disable, enable_events=True, size=56)),
                             sg.pin(sg.FileBrowse(button_text='Обзор', target='FILE', initial_folder=file_path, key='FILE_BROWSE', visible=section_is_visible, disabled=section_is_disable)),
                         ],
                         [
                             sg.pin(sg.Text('Название листа в файле:', key='SHEET_TEXT', visible=section_is_visible, size=19)),
-                            # sg.pin(sg.InputText(key='SHEET', visible=section_is_visible, disabled=section_is_disable, size=56)),
-                            sg.pin(sg.DropDown(values=[], key='SHEETS', readonly=True, visible=section_is_visible, disabled=section_is_disable, size=56)),
+                            sg.pin(sg.DropDown(values=[], key='SHEETS', readonly=True, visible=section_is_visible, disabled=True, size=28)),
                         ],
                     ], title='Файл реестра', relief=sg.RELIEF_SUNKEN, size=registry_section_size, key='REGISTRY_SECTION'),
                 ],
@@ -72,7 +68,9 @@ class GUI:
             ],
             [
                 sg.Submit(button_text='Запуск', key='START'),
+                sg.Text('', size=26),
                 sg.Submit(button_text='Настройки', key='SETTINGS'),
+                sg.Text('', size=26),
                 sg.Cancel(button_text='Выход', key='EXIT'),
             ]
         ]
@@ -90,9 +88,11 @@ class GUI:
 
             if values['AUTOSELECTION'] is False and str(values['FILE'])[values['FILE'].rfind('.') + 1:] == 'xlsx':
                 ws_list = xls_w.get_all_ws(values['FILE'])
-                window_main['SHEETS'].update(values=ws_list)
-                pass
-
+                window_main['SHEETS'].update(disabled=False)
+                if values['SHEETS'] == '':
+                    window_main['SHEETS'].update(values=ws_list, value=[ws_list[0]])
+            else:
+                window_main['SHEETS'].update(disabled=True, values=[], value=[])
 
             if values['AUTOSELECTION'] is True:
                 window_main['FILE_TEXT'].update(visible=False)
@@ -109,20 +109,22 @@ class GUI:
                 window_main['FILE'].update(visible=True)
                 window_main['FILE_BROWSE'].update(disabled=False, visible=True)
                 window_main['SHEET_TEXT'].update(visible=True)
-                window_main['SHEETS'].update(disabled=False, visible=True)
+                window_main['SHEETS'].update(visible=True)
 
             if event in ['SETTINGS', 'Настройки']:
                 self.settings_menu()
 
             elif event in 'Start':
+                self.config.save({'file': {'autoselection': values['AUTOSELECTION']}})
+
                 file_path = values['file']
                 if file_path:
                     file_path = file_path[:file_path.rfind('/')]
-                    self.config.save({'file': {'path': file_path}})
+                    self.config.save({'path': {'file': file_path}})
 
                 dir_path = values['folder']
                 if dir_path:
-                    self.config.save({'directory': {'scan': {'path': dir_path}}})
+                    self.config.save({'path': {'directory': dir_path}})
 
                 registry_path = values['file']
 
