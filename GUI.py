@@ -229,7 +229,7 @@ class GUI:
                 sg.Text(text='Цвет текста:', auto_size_text=True),
                 sg.Button(button_text='', button_color=color, size=(2, 1), disabled=True, key='IMG_COLOR'),
                 sg.Input(key='COLOR', readonly=True, size=(7, 1), enable_events=True, visible=False),
-                sg.ColorChooserButton(button_text='Изменить', key='KEY_COLOR'),
+                sg.ColorChooserButton(button_text='Изменить', key='KEY_COLOR', target='COLOR'),
             ],
         ]
 
@@ -361,8 +361,8 @@ class GUI:
 
         while True:
             event, values = window.read()
-            # print('event =', event)
-            # print('values =', values)
+            print('event =', event)
+            print('values =', values)
             # ===(exit if)===
             if event in [sg.WIN_CLOSED, 'CANCEL_SETTINGS']:  # always,  always give a way out!
                 window.close()
