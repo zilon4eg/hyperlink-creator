@@ -87,13 +87,13 @@ class GUI:
                 window_main.close()
                 break
 
-            if values['AUTOSELECTION'] is False and str(values['FILE'])[values['FILE'].rfind('.') + 1:] == 'xlsx':
-                ws_list = xls_w.get_all_ws(values['FILE'])
-                window_main['SHEETS'].update(disabled=False)
-                if values['SHEETS'] == '':
+            if event in 'FILE':
+                if values['AUTOSELECTION'] is False and str(values['FILE'])[values['FILE'].rfind('.') + 1:] == 'xlsx':
+                    ws_list = xls_w.get_all_ws(values['FILE'])
+                    window_main['SHEETS'].update(disabled=False)
                     window_main['SHEETS'].update(values=ws_list, value=[ws_list[0]])
-            else:
-                window_main['SHEETS'].update(disabled=True, values=[], value=[])
+                else:
+                    window_main['SHEETS'].update(disabled=True, values=[], value=[])
 
             if values['AUTOSELECTION'] is True:
                 window_main['FILE_TEXT'].update(visible=False)
@@ -116,6 +116,7 @@ class GUI:
                 window_main.disable()
                 self.settings_menu()
                 window_main.enable()
+                window_main.force_focus()
 
             elif event in 'Start':
                 self.config.save({'file': {'autoselection': values['AUTOSELECTION']}})

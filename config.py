@@ -21,24 +21,50 @@ class Config:
                 json.dump(self.default_config, file, sort_keys=True, indent=2)
 
     def save(self, settings):
-        is_file_exist = os.path.exists(self.local_file_config_path)
-        config = self.load()
-        if is_file_exist:
-            with open(self.local_file_config_path, 'w', encoding='cp1251') as file:
-                for key in list(settings):
-                    config[key].update(settings[key])
-                json.dump(config, file, sort_keys=True, indent=2)
-        else:
-            self.default_config = config
+        try:
+            is_file_exist = os.path.exists(self.local_file_config_path)
+            config = self.load()
+            if is_file_exist:
+                with open(self.local_file_config_path, 'w', encoding='cp1251') as file:
+                    for key in list(settings):
+                        config[key].update(settings[key])
+                    json.dump(config, file, sort_keys=True, indent=2)
+            else:
+                self.default_config = config
+
+        except Exception:
+            self.reset_config()
+            print('Возникла ошибка при сохранении конфигурации! Часть настроек была сброшена!')
+            is_file_exist = os.path.exists(self.local_file_config_path)
+            config = self.load()
+            if is_file_exist:
+                with open(self.local_file_config_path, 'w', encoding='cp1251') as file:
+                    for key in list(settings):
+                        config[key].update(settings[key])
+                    json.dump(config, file, sort_keys=True, indent=2)
+            else:
+                self.default_config = config
 
     def load(self):
-        is_file_exist = os.path.exists(self.local_file_config_path)
-        if is_file_exist:
-            with open(self.local_file_config_path, 'r', encoding='cp1251') as file:
-                local_config = json.load(file)
-            return local_config
-        else:
-            return self.default_config
+        try:
+            is_file_exist = os.path.exists(self.local_file_config_path)
+            if is_file_exist:
+                with open(self.local_file_config_path, 'r', encoding='cp1251') as file:
+                    local_config = json.load(file)
+                return local_config
+            else:
+                return self.default_config
+
+        except Exception:
+            self.reset_config()
+            print('Возникла ошибка при загрузке конфигурации! Настройки были сброшены!')
+            is_file_exist = os.path.exists(self.local_file_config_path)
+            if is_file_exist:
+                with open(self.local_file_config_path, 'r', encoding='cp1251') as file:
+                    local_config = json.load(file)
+                return local_config
+            else:
+                return self.default_config
 
     def reset_config(self):
         is_file_exist = os.path.exists(self.local_file_config_path)
