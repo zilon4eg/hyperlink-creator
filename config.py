@@ -77,7 +77,7 @@ default_config = {
         'style': {
             'bold': False,
             'italic': False,
-            'underline': 'single'
+            'underline': 2
         },
 
     },

@@ -161,9 +161,9 @@ class GUI:
     def underline_style_text(settings):
         # ===(1 - None, 2 - single, 3 - double, 4 - single long, 4 double long)===
         settings = settings['font']['style']
-        if settings['underline'] in ['single', 2]:
+        if settings['underline'] == 2:
             return 'Одинарное'
-        elif settings['underline'] in ['double', 3]:
+        elif settings['underline'] == 3:
             return 'Двойное'
         else:
             return '(Нет)'
