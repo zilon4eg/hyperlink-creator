@@ -21,6 +21,7 @@ class GUI:
         # ------ Menu Definition ------ #
         menu_def = [
             ['Меню', ['Настройки', 'Выход']],
+            ['Вид', ['Тема оформления']],
             ['Помощь', ['О приложении']],
         ]
         # ----------------------------- #
@@ -57,7 +58,7 @@ class GUI:
                     sg.Frame(layout=[
                         [
                             sg.Text('Путь к папке со сканами:', visible=True, size=19),
-                            sg.InputText(key='FOLDER', size=56),
+                            sg.InputText(key='FOLDER', readonly=True, size=56),
                             sg.FolderBrowse(button_text='Обзор', target='FOLDER', initial_folder=dir_path)
                         ],
                     ], title='Папка со сканами', relief=sg.RELIEF_SUNKEN, size=registry_section_size),
@@ -112,7 +113,9 @@ class GUI:
                 window_main['SHEETS'].update(visible=True)
 
             if event in ['SETTINGS', 'Настройки']:
+                window_main.disable()
                 self.settings_menu()
+                window_main.enable()
 
             elif event in 'Start':
                 self.config.save({'file': {'autoselection': values['AUTOSELECTION']}})
@@ -156,10 +159,11 @@ class GUI:
 
     @staticmethod
     def underline_style_text(settings):
+        # ===(1 - None, 2 - single, 3 - double, 4 - single long, 4 double long)===
         settings = settings['font']['style']
-        if settings['underline'] == 'single':
+        if settings['underline'] in ['single', 2]:
             return 'Одинарное'
-        elif settings['underline'] == 'double':
+        elif settings['underline'] in ['double', 3]:
             return 'Двойное'
         else:
             return '(Нет)'
@@ -228,7 +232,7 @@ class GUI:
                 sg.Text(text='       ', auto_size_text=True),
                 sg.Text(text='Цвет текста:', auto_size_text=True),
                 sg.Button(button_text='', button_color=color, size=(2, 1), disabled=True, key='IMG_COLOR'),
-                sg.Input(key='COLOR', readonly=True, size=(7, 1), enable_events=True, visible=False),
+                sg.Input(key='COLOR', default_text=settings['font']['color'], readonly=True, size=(7, 1), enable_events=True, visible=False),
                 sg.ColorChooserButton(button_text='Изменить', key='KEY_COLOR', target='COLOR'),
             ],
         ]
@@ -351,19 +355,22 @@ class GUI:
             ],
             [
                 sg.Button(button_text='По умолчанию', key='SET_DEFAULT_SETTINGS', size=15),
-                sg.Text(text='', size=27),
-                sg.Button(button_text='Ок', key='SAVE_SETTINGS', size=4),
+                sg.Text(text='', size=23),
+                sg.Button(button_text='Сохранить', key='SAVE_SETTINGS', size=8),
                 sg.Button(button_text='Отмена', key='CANCEL_SETTINGS', size=6),
             ]
         ]
 
-        window = sg.Window('My window with tabs', layout, default_element_size=(12, 1))
+        window = sg.Window('My window with tabs', layout, default_element_size=(12, 1), force_toplevel=True)
 
         while True:
             event, values = window.read()
+            window.force_focus()
+
             print('event =', event)
             print('values =', values)
-            # ===(exit if)===
+
+            # ===(exit)===
             if event in [sg.WIN_CLOSED, 'CANCEL_SETTINGS']:  # always,  always give a way out!
                 window.close()
                 break
@@ -498,6 +505,14 @@ class GUI:
                 else:
                     hyperlink_column_enabled = config.default_config['file']['hyperlink_column']['enabled']
 
+                # ===(excel underline style)===(1 - None, 2 - single, 3 - double, 4 - single long, 4 double long)===
+                if values['UNDERLINE_STYLE_LIST'] == 'Одинарное':
+                    underline_style = 2
+                elif values['UNDERLINE_STYLE_LIST'] == 'Двойное':
+                    underline_style = 3
+                else:
+                    underline_style = 1
+
                 settings = {
                     'file': {
                         'header_string_count': values['HEADER_STRING_COUNT'],
@@ -513,6 +528,16 @@ class GUI:
                             'text': values['TEXT_COLUMN_HYPERLINK_NUMBER'],
                             'enabled': hyperlink_column_enabled
                         },
+                    },
+                    'font': {
+                        'color': '#0563c1' if values['COLOR'] is None else values['COLOR'],
+                        'name': values['FONT_NAME'],
+                        'size': values['FONT_SIZE'],
+                        'style': {
+                            'bold': True if values['FONT_STYLE'] == 'Полужирный' or values['FONT_STYLE'] == 'Полужирный курсив' else False,
+                            'italic': True if values['FONT_STYLE'] == 'Курсив' or values['FONT_STYLE'] == 'Полужирный курсив' else False,
+                            'underline': underline_style
+                        }
                     }
                 }
 
