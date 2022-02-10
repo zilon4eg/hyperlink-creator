@@ -9,19 +9,21 @@ from config import Config
 
 class GUI:
     def __init__(self):
-        self.version = 'v2.6.2'
+        self.version = f'v{config.default_config["program"]["version"]}'
         self.config = Config()
 
     def main_menu(self):
-        sg.theme('LightBrown13')
         settings = self.config.load()
+        color_theme = settings['program']['color_theme']
+        sg.theme(color_theme)
         file_path = settings['path']['file']
         dir_path = settings['path']['directory']
+        color_theme_list = GUI.color_theme_list()
 
         # ------ Menu Definition ------ #
         menu_def = [
             ['Меню', ['Настройки', 'Выход']],
-            ['Вид', ['Тема оформления']],
+            ['Тема оформления', color_theme_list],
             ['Помощь', ['О приложении']],
         ]
         # ----------------------------- #
@@ -87,6 +89,14 @@ class GUI:
                 window_main.close()
                 break
 
+            if event in color_theme_list:
+                print('найдено')
+                color_theme = event
+                self.config.save({'program': {'color_theme': color_theme}})
+                window_main.close()
+                self.main_menu()
+
+
             if event in 'FILE':
                 if values['AUTOSELECTION'] is False and str(values['FILE'])[values['FILE'].rfind('.') + 1:] == 'xlsx':
                     ws_list = xls_w.get_all_ws(values['FILE'])
@@ -147,6 +157,10 @@ class GUI:
                 registry.body(registry_path, dir_scan, ws_name, self.config.load())
 
     @staticmethod
+    def color_theme_list():
+        return sg.list_of_look_and_feel_values()
+
+    @staticmethod
     def font_style_text(settings):
         settings = settings['font']['style']
         if settings['bold'] and settings['italic']:
@@ -166,6 +180,10 @@ class GUI:
             return 'Одинарное'
         elif settings['underline'] == 3:
             return 'Двойное'
+        elif settings['underline'] == 4:
+            return 'Одинарное длин.'
+        elif settings['underline'] == 5:
+            return 'Двойное длин.'
         else:
             return '(Нет)'
 
