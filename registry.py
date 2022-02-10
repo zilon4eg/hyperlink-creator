@@ -1,68 +1,101 @@
 from xls_w import Excel
 import os
 from GUI import GUI
-from natsort import natsorted, ns
 
 
-def light_files_in_dir(list_files):
-    list_files = list(str(file) for file in list_files if not str(file)[:str(file).rfind('.')].isdigit())
-    list_files = list(map(lambda x: x[x.rfind('№') + 1:x.rfind('.')].lower(), list_files))
-    return list_files
+def eng_to_rus_letters(text):
+    return text.replace('a', 'а').replace('e', 'е').replace('o', 'о')\
+        .replace('p', 'р').replace('c', 'с').replace('y', 'у').replace('x', 'х')
 
 
-def miss_files(list1, list2):
-    miss_list = list(set(list1) - set(list2))
-    return natsorted(miss_list, alg=ns.IGNORECASE)  # or alg=ns.IC
+def find_column_by_text(xxl, text):
+    text = ' '.join(str(text).strip().lower().split()) if ' ' in text else str(text).strip().lower()
+
+    for count in range(1, xxl.size_string(1) + 1):
+        cell_data = str(xxl.ws[f'{Excel.number_to_letter(count)}1'].value).strip().lower()
+        if ' ' in cell_data:
+            cell_data = ' '.join(cell_data.split())
+        else:
+            cell_data = cell_data
+
+        if eng_to_rus_letters(cell_data) == eng_to_rus_letters(text):
+            return count
+    return None
+
+
+def data_analysis(dir_scan, xxl, files_dir, settings):
+    # ===(Находим столбец с регистрационными номерами)===
+    registry_column_type = settings['file']['registry_column']['enabled']
+    if registry_column_type == 'text':
+        text_for_find = settings['file']['registry_column'][registry_column_type]
+        registry_column = find_column_by_text(xxl, text_for_find)
+    elif registry_column_type == 'number':
+        registry_column = Excel.number_to_letter(settings['file']['registry_column'][registry_column_type])
+    else:
+        registry_column = settings['file']['registry_column'][registry_column_type]
+
+    # ===(Находим столбец для гиперссылок)===
+    hyperlink_column_type = settings['file']['hyperlink_column']['enabled']
+    if hyperlink_column_type == 'text':
+        text_for_find = settings['file']['hyperlink_column'][hyperlink_column_type]
+        hyperlink_column = find_column_by_text(xxl, text_for_find)
+    elif hyperlink_column_type == 'number':
+        hyperlink_column = Excel.number_to_letter(settings['file']['hyperlink_column'][hyperlink_column_type])
+    else:
+        hyperlink_column = settings['file']['registry_column'][hyperlink_column_type]
+
+    # ===(Номер первой строки таблицы после шапки)===
+    first_string = settings['file']['header_string_count'] + 1
+
+    # ===(Формируем список параметров текста)===
+    is_bold = settings['font']['style']['bold']
+    is_italic = settings['font']['style']['italic']
+    is_underline = settings['font']['style']['underline']
+    text_param = [is_bold, is_italic, is_underline]
+
+    # ===(initializing PROGRESSBAR)===
+    pg_size = xxl.size_column(registry_column) - 1
+    pg_window = GUI.progress_bar(pg_size)
+    pg_window.read(timeout=10)
+    pg_window.TKroot.focus_force()
+    # ===(initializing PROGRESSBAR)===
+
+    for position, string_number in enumerate(range(first_string, xxl.size_column(registry_column) + 1)):
+        cell_data = str(xxl.ws[f'{registry_column}{string_number}'].value).strip()
+        cell_data = cell_data[:cell_data.rfind('.')] if '.' in cell_data else cell_data
+        if '/' in cell_data:
+            cell_data = cell_data.replace(r'/', r'-')
+            xxl.ws[f'{registry_column}{string_number}'].value = cell_data
+
+        miss_file_count = 0
+        for file in files_dir:
+            file_type = file[:file.find('.') + 1] if file[:file.find('.') + 1].lower() in ['вх.', 'исх.'] else ''
+            file_hl_name = file.split()[0] if ' ' in file else file[:file.rfind('.')]
+            # file_extension = file[file.rfind('.') + 1:]
+            file_name_for_find = file_hl_name[file_hl_name.rfind('.') + 1:] if '.' in file_hl_name else file_hl_name
+            if '-' in file_name_for_find:
+                if int(file_name_for_find[file_name_for_find.rfind('-') + 1:]) > 20:
+                    file_name_for_find = file_name_for_find[:file_name_for_find.rfind('-')]
+
+            hl_name = f'{file_type}{file_name_for_find}'
+            if cell_data == file_name_for_find:
+                # if not xxl.check_hyperlink(hl_name, file, f'{Excel.number_to_letter(hyperlink_column)}{string_number}'):
+                xxl.create_hyperlinks(hl_name, file, f'{Excel.number_to_letter(hyperlink_column)}{string_number}', text_param)
+            else:
+                miss_file_count += 1
+        print(f'Не найдено сопоставление регистрационному номеру {cell_data} среди файлов.') if miss_file_count == len(files_dir) else None
+        # ===(increment PROGRESSBAR)===
+        pg_window['PROGRESSBAR'].update_bar(position + 1)
+    # ===(close PROGRESSBAR)===
+    pg_window.close()
 
 
 def body(file_path, dir_scan, ws_name, settings):
     xxl = Excel(file_path, dir_scan, ws_name, settings)
-    file_path = xxl.get_path_active_book() if file_path in '' else file_path
-
-    if file_path[file_path.rfind('\\') + 1:file_path.rfind('.')].lower().count('исходящ') > 0:
-        file_pref = 'исх.№'
-        print('Загруженный документ идентифицирован как реестр Исходящих.')
-    elif file_path[file_path.rfind('\\') + 1:file_path.rfind('.')].lower().count('входящ') > 0:
-        file_pref = 'вход.№'
-        print('Загруженный документ идентифицирован как реестр Входящих.')
-    else:
-        file_pref = '№'
-        print('Реестр не идентифицирован.')
-
-    files_a = xxl.get_column()
-    files_a_sort = list(map(lambda x: str(x).replace(r'/', r'-').strip().split()[0], files_a))
     files_dir = os.listdir(path=dir_scan)
     print(f'Получен список файлов в папке {dir_scan}.')
-
-    files_dir_clear = light_files_in_dir(files_dir)
-    miss_list = miss_files(files_a_sort, files_dir_clear)
-    for miss in miss_list:
-        print(f'Не найдено сопоставление регистрационному номеру {miss} среди файлов.')
-
-    print('Формирование гиперссылок...')
-
-    pg_size = len(files_a)
-    pg_window = GUI.progress_bar(pg_size)
-    pg_window.read(timeout=10)
-    pg_window.TKroot.focus_force()
-
-    for position, file_a in enumerate(files_a, 3):
-        file_a_clear = file_a.replace(r'/', r'-').strip().split()[0]
-
-        pg_window['PROGRESSBAR'].update_bar(position + 1)
-
-        for file_dir in files_dir:
-            if not file_dir.isdigit():
-                file_type = file_dir[file_dir.rfind('.'):].lower()
-                file_dir_clear = file_dir[file_dir.rfind('№') + 1:file_dir.rfind('.')].lower()
-
-                if file_dir_clear == file_a_clear:
-                    name = f'{file_pref.capitalize()}{file_a_clear}'
-                    link_name = f'{file_pref.upper()}{file_a_clear}{file_type}'
-                    if not xxl.check_hyperlink(name, link_name, position):
-                        xxl.create_hyperlinks(name, link_name, position)
-
-    pg_window.close()
+    print('Анализ данных и формирование гиперссылок...')
+    data_analysis(dir_scan, xxl, files_dir, settings)
     print('Гиперссылки сформированы.')
     print('Complete...' + '\n' * 1)
 

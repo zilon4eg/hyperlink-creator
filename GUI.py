@@ -126,26 +126,26 @@ class GUI:
                 window_main.enable()
                 window_main.force_focus()
 
-            elif event in 'Start':
-                self.config.save({'file': {'autoselection': values['AUTOSELECTION']}})
+            elif event in 'START':
+                self.config.save({'path': {'autoselection': values['AUTOSELECTION']}})
 
-                file_path = values['file']
+                file_path = values['FILE']
                 if file_path:
                     file_path = file_path[:file_path.rfind('/')]
                     self.config.save({'path': {'file': file_path}})
 
-                dir_path = values['folder']
+                dir_path = values['FOLDER']
                 if dir_path:
                     self.config.save({'path': {'directory': dir_path}})
 
-                registry_path = values['file']
-
                 if not values['AUTOSELECTION']:
-                    ws_name = values['SHEET']
+                    ws_name = values['SHEETS']
+                    registry_path = values['file']
                 else:
-                    ws_name = True
+                    ws_name = None
+                    registry_path = None
 
-                dir_scan = values['folder']
+                dir_scan = values['FOLDER']
                 if os.path.exists(dir_scan):
                     print(f'Доступность каталога сканов проверена.')
                 else:

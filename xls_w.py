@@ -4,9 +4,9 @@ from openpyxl import load_workbook
 
 class Excel:
     def __init__(self, registry_path, dir_scan, ws_name, settings):
-        self.font_size = round(int(settings['hyperlink']['font']['size']), 1)
-        self.font_name = settings['hyperlink']['font']['name']
-        self.hyperlink_color = settings['hyperlink']['font']['color']
+        self.font_size = round(int(settings['font']['size']), 1)
+        self.font_name = settings['font']['name']
+        self.hyperlink_color = settings['font']['color']
         self.dir_scan = dir_scan
 
         if registry_path not in [True, None, 'None', '']:
@@ -25,25 +25,91 @@ class Excel:
         self.ws = self.wb.sheets[self.ws_name]
         print(f'Выбран лист {self.ws_name}.')
 
-    def get_column(self):
-        list_column = list(str(self.ws[f'A{i}'].value)[:str(self.ws[f'A{i}'].value).rfind('.')
-            if '.' in str(self.ws[f"A{i}"].value) else None] for i in range(3, self.ws.range('A1').end('down').row + 1))
+    @staticmethod
+    def number_to_letter(number):
+        return chr(int(((number - 1) / 26) + 64)) + chr(int(((number - 1) % 26) + 1 + 64)) if number > 26 else chr(
+            int(number + 64))
 
-        list_column = list(str(i) for i in list_column if i is not None)
-        print('Получен список регистрационных номеров из столбца "А".')
-        return list_column
+    def size_column(self, column):
+        column = Excel.number_to_letter(column) if type(column) is int else column
+        last_cell_with_data = None
+        last_cell = 1
+        empty_cell_count = 0
+
+        while True:
+            cell_data = self.ws[f'{column}{last_cell}'].value
+            if cell_data in [None, '']:
+                empty_cell_count += 1
+                last_cell += 1
+            else:
+                empty_cell_count = 0
+                last_cell_with_data = last_cell
+                last_cell += 1
+            if empty_cell_count > 30:
+                return last_cell_with_data
+
+    def size_string(self, string):
+        last_cell_with_data = None
+        last_cell = 1
+        empty_cell_count = 0
+
+        while True:
+            cell_data = self.ws[f'{Excel.number_to_letter(last_cell)}{string}'].value
+            if cell_data in [None, '']:
+                empty_cell_count += 1
+                last_cell += 1
+            else:
+                empty_cell_count = 0
+                last_cell_with_data = last_cell
+                last_cell += 1
+            if empty_cell_count > 30:
+                return last_cell_with_data
 
     def get_path_active_book(self):
         return self.wb.fullname
 
-    def create_hyperlinks(self, name, link_name, position):
-        self.ws[f'H{position}'].add_hyperlink(f'{self.dir_scan}\\{link_name}', name)
-        self.ws[f'H{position}'].font.name = self.font_name
-        self.ws[f'H{position}'].font.size = self.font_size
-        self.ws[f'H{position}'].font.color = self.hyperlink_color
-        self.ws[f'H{position}'].api.HorizontalAlignment = -4108
-        self.ws[f'H{position}'].api.VerticalAlignment = -4108
-        self.borders_all(f'H{position}')
+    def create_hyperlinks(self, name, file_name, position, text_param):
+        hyperlink_is_ceate = False
+        try:
+            hyperlink = self.ws[f'H{position}'].hyperlink
+        except Exception:
+            hyperlink = None
+
+        if (
+                name == self.ws[f'H{position}'].value
+                and f'{self.dir_scan}\\{file_name}'.replace('\\', '/') in hyperlink.replace('\\', '/')
+        ):
+            hyperlink_is_ceate = False
+        else:
+            self.ws[f'{position}'].add_hyperlink(f'{self.dir_scan}\\{file_name}', name)
+            hyperlink_is_ceate = True
+
+        if hyperlink_is_ceate is False:
+            if self.font_name != self.ws[f'H{position}'].font.name:
+                self.ws[f'{position}'].font.name = self.font_name
+            if self.font_size != self.ws[f'H{position}'].font.size:
+                self.ws[f'{position}'].font.size = self.font_size
+            if Excel.hex_to_rgb(self.hyperlink_color) != self.ws[f'H{position}'].font.color:
+                self.ws[f'{position}'].font.color = self.hyperlink_color
+            if text_param[0] != self.ws[f'{position}'].font.bold:
+                self.ws[f'{position}'].font.bold = text_param[0]
+            if text_param[1] != self.ws[f'{position}'].font.italic:
+                self.ws[f'{position}'].font.italic = text_param[1]
+            if text_param[2] != self.ws[f'{position}'].api.Font.Underline:
+                self.ws[f'{position}'].api.Font.Underline = text_param[2]  # True == 2 - single, 3 - double
+            self.ws[f'{position}'].api.HorizontalAlignment = -4108
+            self.ws[f'{position}'].api.VerticalAlignment = -4108
+            # self.borders_all(f'{position}')
+        else:
+            self.ws[f'{position}'].font.name = self.font_name
+            self.ws[f'{position}'].font.size = self.font_size
+            self.ws[f'{position}'].font.color = self.hyperlink_color
+            self.ws[f'{position}'].font.bold = text_param[0]
+            self.ws[f'{position}'].italic = text_param[1]
+            self.ws[f'{position}'].api.Font.Underline = text_param[2]  # True == 2 - single, 3 - double
+            self.ws[f'{position}'].api.HorizontalAlignment = -4108
+            self.ws[f'{position}'].api.VerticalAlignment = -4108
+            self.borders_all(f'{position}')
 
     def borders_all(self, cell):
         for i in range(7, 13):
@@ -54,23 +120,22 @@ class Excel:
         h = hex_color.lstrip('#')
         return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
-    def check_hyperlink(self, name, link_name, position):
-        try:
-            hyperlink = self.ws[f'H{position}'].hyperlink
-        except Exception:
-            hyperlink = None
-
-        if (
-                name == self.ws[f'H{position}'].value
-                and f'{self.dir_scan}\\{link_name}'.replace('\\', '/') in hyperlink.replace('\\', '/')
-                and self.font_name == self.ws[f'H{position}'].font.name
-                and self.font_size == self.ws[f'H{position}'].font.size
-                and Excel.hex_to_rgb(self.hyperlink_color) == self.ws[f'H{position}'].font.color
-        ):
-            return True
-        else:
-            return False
-    pass
+    # def check_hyperlink(self, name, link_name, position):
+    #     try:
+    #         hyperlink = self.ws[f'H{position}'].hyperlink
+    #     except Exception:
+    #         hyperlink = None
+    #
+    #     if (
+    #             name == self.ws[f'H{position}'].value
+    #             and f'{self.dir_scan}\\{link_name}'.replace('\\', '/') in hyperlink.replace('\\', '/')
+    #             and self.font_name == self.ws[f'H{position}'].font.name
+    #             and self.font_size == self.ws[f'H{position}'].font.size
+    #             and Excel.hex_to_rgb(self.hyperlink_color) == self.ws[f'H{position}'].font.color
+    #     ):
+    #         return True
+    #     else:
+    #         return False
 
 
 def get_all_ws(file_path):
