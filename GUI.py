@@ -90,12 +90,10 @@ class GUI:
                 break
 
             if event in color_theme_list:
-                print('найдено')
                 color_theme = event
                 self.config.save({'program': {'color_theme': color_theme}})
                 window_main.close()
                 self.main_menu()
-
 
             if event in 'FILE':
                 if values['AUTOSELECTION'] is False and str(values['FILE'])[values['FILE'].rfind('.') + 1:] == 'xlsx':
