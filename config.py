@@ -32,8 +32,6 @@ class Config:
             self.default_config = config
 
     def load(self):
-        self.check_config_file()  #  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
         is_file_exist = os.path.exists(self.local_file_config_path)
         if is_file_exist:
             with open(self.local_file_config_path, 'r', encoding='cp1251') as file:
@@ -61,9 +59,6 @@ class Config:
             os.remove(self.local_file_config_path)
         self.create_local_config()
 
-    def check_config_file(self):
-        pass
-
 
 lists = {
     'font_name_list': [
@@ -81,14 +76,14 @@ lists = {
     'column_letter_list': list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'),
     'font_size_list': list(number for number in range(10, 21)),
     'header_string_list': list(number for number in range(1, 11)),
-    'font_style_list': ['Обычный', 'Курсив', 'Полужирный', 'Полужирный Курсив'],
+    'font_style_list': ['Обычный', 'Курсив', 'Полужирный', 'Полужирный курсив'],
     'underline_style_list': ['(нет)', 'Одинарное', 'Двойное']
 }
 
 
 default_config = {
     'program': {
-        'version': 4.0,
+        'version': '4.3.1',
         'color_theme': 'LightBrown13',
     },
     'font': {

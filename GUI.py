@@ -11,6 +11,7 @@ class GUI:
     def __init__(self):
         self.version = f'v{config.default_config["program"]["version"]}'
         self.config = Config()
+        self.color_theme_list = GUI.color_theme_list()
 
     def main_menu(self):
         settings = self.config.load()
@@ -18,13 +19,13 @@ class GUI:
         sg.theme(color_theme)
         file_path = settings['path']['file']
         dir_path = settings['path']['directory']
-        color_theme_list = GUI.color_theme_list()
+
 
         # ------ Menu Definition ------ #
         menu_def = [
             ['Меню', ['Настройки', 'Выход']],
-            ['Тема оформления', color_theme_list],
-            ['Помощь', ['О приложении']],
+            ['Тема оформления', 'Изменить тему'],
+            ['Информация', ['О приложении']],
         ]
         # ----------------------------- #
         autoselection_is_true = settings['path']['autoselection']
@@ -41,7 +42,7 @@ class GUI:
                     sg.Frame(layout=[
                         [
                             sg.Checkbox(text='Выбрать автоматически активный лист открытого файла Excel',
-                                        default=autoselection_is_true, key='AUTOSELECTION', enable_events=True)
+                                        default=autoselection_is_true, key='AUTOSELECTION', enable_events=True, tooltip='Если открыто несколько документов Excel,\nвыбран будет последний активный.')
                         ],
                         [
                             sg.pin(sg.Text(text='Путь к файлу реестра:', key='FILE_TEXT', visible=section_is_visible, size=19)),
@@ -82,16 +83,22 @@ class GUI:
 
         while True:  # The Event Loop
             event, values = window_main.read()
-            print('event', event)
-            print('values', values)
+            # print('event', event)
+            # print('values', values)
 
             if event in ['EXIT', 'Выход', sg.WINDOW_CLOSED]:
                 window_main.close()
                 break
 
-            if event in color_theme_list:
-                color_theme = event
-                self.config.save({'program': {'color_theme': color_theme}})
+            if event in 'О приложении':
+                window_main.disable()
+                GUI.about()
+                window_main.enable()
+
+            if event in 'Изменить тему':
+                window_main.disable()
+                self.theme_menu()
+                window_main.enable()
                 window_main.close()
                 self.main_menu()
 
@@ -129,30 +136,128 @@ class GUI:
             elif event in 'START':
                 self.config.save({'path': {'autoselection': values['AUTOSELECTION']}})
 
-                file_path = values['FILE']
-                if file_path:
-                    file_path = file_path[:file_path.rfind('/')]
-                    self.config.save({'path': {'file': file_path}})
-
-                dir_path = values['FOLDER']
-                if dir_path:
-                    self.config.save({'path': {'directory': dir_path}})
-
-                if not values['AUTOSELECTION']:
-                    ws_name = values['SHEETS']
-                    registry_path = values['file']
+                if values['FOLDER'] in [None, '']:
+                    GUI.popup_error('Каталог сканов не выбран!')
                 else:
-                    ws_name = None
-                    registry_path = None
+                    file_path = values['FILE']
+                    if file_path:
+                        file_path = file_path[:file_path.rfind('/')]
+                        self.config.save({'path': {'file': file_path}})
 
-                dir_scan = values['FOLDER']
-                if os.path.exists(dir_scan):
-                    print(f'Доступность каталога сканов проверена.')
-                else:
-                    print(f'Каталог сканов недоступен.')
-                    break
+                    dir_path = values['FOLDER']
+                    if dir_path:
+                        self.config.save({'path': {'directory': dir_path}})
 
-                registry.body(registry_path, dir_scan, ws_name, self.config.load())
+                    if not values['AUTOSELECTION']:
+                        ws_name = values['SHEETS']
+                        registry_path = values['file']
+                    else:
+                        ws_name = None
+                        registry_path = None
+
+                    dir_scan = values['FOLDER']
+                    if os.path.exists(dir_scan):
+                        print(f'Доступность каталога сканов проверена.')
+                    else:
+                        print(f'Каталог сканов недоступен.')
+                        GUI.popup_error('Каталог сканов недоступен!')
+                        break
+
+                    registry.body(registry_path, dir_scan, ws_name, self.config.load())
+
+    def theme_menu(self, new_theme=None):
+        settings = self.config.load()
+
+        if new_theme is None:
+            color_theme = settings['program']['color_theme']
+        else:
+            color_theme = new_theme
+
+        sg.theme(color_theme)
+
+        layout = [
+            [sg.Text(text='Выберете тему оформления', size=21)],
+            [sg.InputText(default_text=color_theme, key='COLOR_THEME', readonly=True, size=24)],
+            [sg.Listbox(values=self.color_theme_list, default_values=[color_theme], key='COLOR_THEME_LIST', enable_events=True, size=(22, 15))],
+            [
+                sg.Button(button_text='Сохранить', key='SAVE_COLOR_THEME', size=8),
+                sg.Text(text='', size=1),
+                sg.Button(button_text='Отмена', key='CANCEL_COLOR_THEME', size=8),
+            ],
+        ]
+
+        window_theme = sg.Window('Тема оформления', layout)
+
+        while True:  # The Event Loop
+            event, values = window_theme.read()
+            # print('event', event)
+            # print('values', values)
+
+            if event in ['CANCEL_COLOR_THEME', sg.WINDOW_CLOSED]:
+                window_theme.close()
+                break
+
+            if event in 'COLOR_THEME_LIST':
+                color_theme = values['COLOR_THEME_LIST'][0]
+                window_theme['COLOR_THEME'].update(value=color_theme)
+                window_theme.close()
+                self.theme_menu(color_theme)
+                break
+
+            if event in 'SAVE_COLOR_THEME':
+                self.config.save({'program': {'color_theme': color_theme}})
+                window_theme.close()
+                break
+
+    @staticmethod
+    def about():
+        message1 = 'Это скромное и ничем не выдающееся приложение написано только с одной целью,\n' \
+                  'автоматизировать рабочий процесс и облегчить нелегкий труд моей милой Котеньки.'
+        message2 = '''
+                          ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                          ⣿⣿⣿⣿⡿⠟⠋⠉⠉⠉⠉⠛⠿⣿⣿⣿⣿⡿⠛⠉⠉⠄⠈⠉⠙⠿⣿⣿⣿⣿
+                          ⣿⣿⡿⠋⠄⣠⣶⣿⣿⣿⣷⣦⣄⠈⠛⢟⢁⣠⣤⣴⣶⣤⣄⠄⠄⠄⠈⢿⣿⣿
+                          ⣿⡿⠁⢠⣾⣿⣿⣿⣿⣿⣿⣿⡿⣿⣦⣀⠈⠛⠛⠋⣸⣿⣿⣷⡄⠄⠄⠄⢻⣿
+                          ⣿⠁⢀⣿⣿⣿⣿⣿⣿⣿⠋⠄⠄⣿⣿⣿⣿⣶⣶⣾⣿⣿⣿⣿⣧⠄⠄⠄⠄⣿
+                          ⣿⠄⢸⣿⣿⣿⣿⣿⠟⠁⠄⠄⠄⠄⠙⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠄⠄⠄⠄⣿
+                          ⣿⠄⠘⣿⣿⣿⣿⡏⠄⠄⠄⠄⠄⠄⠄⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⠄⠄⠄⠄⣿
+                          ⣿⠄⠄⢻⣿⣿⣿⠁⠄⠄⠄⠄⠄⠄⠄⢠⣿⣿⣿⣿⣿⣿⣿⣿⣿⠄⠄⠄⢀⣿
+                          ⣿⡆⠄⠈⠿⠿⠋⠄⠄⠄⠄⠄⠄⢰⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠄⠄⠄⣸⣿
+                          ⣿⣿⡀⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠄⠄⣰⣿⣿
+                          ⣿⣿⣷⡄⠄⠄⠄⠄⠄⠄⠄⠄⠄⠄⣿⣿⣿⣿⣿⣿⣿⣿⣿⡟⠄⠄⣰⣿⣿⣿
+                          ⣿⣿⣿⣿⣄⠄⠄⠄⠄⠄⠄⠄⠄⣰⣿⣿⣿⣿⣿⣿⣿⣿⠏⠄⢀⣴⣿⣿⣿⣿
+                          ⣿⣿⣿⣿⣿⣷⣄⠄⠄⠄⠄⠄⣰⣿⣿⣿⣿⣿⣿⣿⡿⠃⠄⣠⣾⣿⣿⣿⣿⣿
+                          ⣿⣿⣿⣿⣿⣿⣿⣷⣄⠄⠄⠄⢿⣿⣿⣿⣿⣿⡿⠋⢀⣠⣾⣿⣿⣿⣿⣿⣿⣿
+                          ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣦⣀⠄⠙⢿⣿⠟⠋⣠⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                          ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣦⣄⣨⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+                          ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+        '''
+        message3 = '                          \u2665 Спасибо что ты со мной, люблю тебя, Иришка! \u2665'
+
+        layout = [
+            [sg.Text(message1, auto_size_text=True)],
+            [sg.Text(message2, auto_size_text=True)],
+            [sg.Text(message3, auto_size_text=True)],
+            [
+                sg.Text('', size=27),
+                sg.Button(button_text='Закрыть', key='CLOSE_ABOUT'),
+            ],
+        ]
+
+        window_about = sg.Window('О приложении', layout)
+
+        while True:  # The Event Loop
+            event, values = window_about.read()
+            # print('event', event)
+            # print('values', values)
+
+            if event in ['CLOSE_ABOUT', sg.WINDOW_CLOSED]:
+                window_about.close()
+                break
+
+    @staticmethod
+    def popup_error(text_error):
+        sg.popup_error(text_error)
 
     @staticmethod
     def color_theme_list():
@@ -378,14 +483,14 @@ class GUI:
             ]
         ]
 
-        window = sg.Window('My window with tabs', layout, default_element_size=(12, 1), force_toplevel=True)
+        window = sg.Window('Настройки', layout, default_element_size=(12, 1), force_toplevel=True)
 
         while True:
             event, values = window.read()
             window.force_focus()
 
-            print('event =', event)
-            print('values =', values)
+            # print('event =', event)
+            # print('values =', values)
 
             # ===(exit)===
             if event in [sg.WIN_CLOSED, 'CANCEL_SETTINGS']:  # always,  always give a way out!
@@ -508,7 +613,7 @@ class GUI:
                     registry_column_enabled = 'letter'
                 elif values['NUMBER_COLUMN_REGISTRY_NUMBER_RADIO']:
                     registry_column_enabled = 'number'
-                elif values['NUMBER_COLUMN_REGISTRY_NUMBER_RADIO']:
+                elif values['TEXT_COLUMN_REGISTRY_NUMBER_RADIO']:
                     registry_column_enabled = 'text'
                 else:
                     registry_column_enabled = config.default_config['file']['registry_column']['enabled']
@@ -517,7 +622,7 @@ class GUI:
                     hyperlink_column_enabled = 'letter'
                 elif values['NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO']:
                     hyperlink_column_enabled = 'number'
-                elif values['NUMBER_COLUMN_HYPERLINK_NUMBER_RADIO']:
+                elif values['TEXT_COLUMN_HYPERLINK_NUMBER_RADIO']:
                     hyperlink_column_enabled = 'text'
                 else:
                     hyperlink_column_enabled = config.default_config['file']['hyperlink_column']['enabled']
