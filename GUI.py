@@ -131,7 +131,7 @@ class GUI:
                 window_main.disable()
                 self.settings_menu()
                 window_main.enable()
-                window_main.force_focus()
+                # window_main.force_focus()
 
             elif event in 'START':
                 self.config.save({'path': {'autoselection': values['AUTOSELECTION']}})
@@ -150,7 +150,7 @@ class GUI:
 
                     if not values['AUTOSELECTION']:
                         ws_name = values['SHEETS']
-                        registry_path = values['file']
+                        registry_path = values['FILE']
                     else:
                         ws_name = None
                         registry_path = None
@@ -487,7 +487,7 @@ class GUI:
 
         while True:
             event, values = window.read()
-            window.force_focus()
+            # window.force_focus()
 
             # print('event =', event)
             # print('values =', values)
