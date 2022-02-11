@@ -82,7 +82,7 @@ lists = {
 
 default_config = {
     'program': {
-        'version': '4.3.3',
+        'version': '4.3.4',
         'color_theme': 'LightBrown13',
     },
     'font': {
