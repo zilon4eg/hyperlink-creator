@@ -1,12 +1,11 @@
 import json
 import os
-from pathlib import Path
 
 
 class Config:
     def __init__(self):
-        self.local_dir_config_path = f'{str(Path.home())}\\HyperlinkCreator'
-        self.local_file_config_path = f'{str(Path.home())}\\HyperlinkCreator\\config.json'
+        self.local_dir_config_path = f'{str(os.path.expanduser(os.getenv("USERPROFILE")))}\\HyperlinkCreator'
+        self.local_file_config_path = f'{str(os.path.expanduser(os.getenv("USERPROFILE")))}\\HyperlinkCreator\\config.json'
         self.default_config = default_config
         self.create_local_config()
 
