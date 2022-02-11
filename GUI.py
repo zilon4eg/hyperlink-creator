@@ -101,6 +101,7 @@ class GUI:
                 window_main.enable()
                 window_main.close()
                 self.main_menu()
+                break
 
             if event in 'FILE':
                 if values['AUTOSELECTION'] is False and str(values['FILE'])[values['FILE'].rfind('.') + 1:] == 'xlsx':
