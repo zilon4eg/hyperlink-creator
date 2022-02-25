@@ -656,7 +656,7 @@ class GUI:
                     'font': {
                         'color': '#0563c1' if values['COLOR'] is None else values['COLOR'],
                         'name': values['FONT_NAME'],
-                        'size': values['FONT_SIZE'],
+                        'size': int(values['FONT_SIZE']),
                         'style': {
                             'bold': True if values['FONT_STYLE'] == 'Полужирный' or values['FONT_STYLE'] == 'Полужирный курсив' else False,
                             'italic': True if values['FONT_STYLE'] == 'Курсив' or values['FONT_STYLE'] == 'Полужирный курсив' else False,
