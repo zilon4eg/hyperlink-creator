@@ -82,8 +82,8 @@ lists = {
 
 default_config = {
     'program': {
-        'version': '4.3.4',
-        'color_theme': 'LightBrown13',
+        'version': '4.3.7',
+        'color_theme': 'Reddit',
     },
     'font': {
         'color': '#0563c1',

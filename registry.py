@@ -25,7 +25,7 @@ def find_column_by_text(xxl, text, header_string_count):
     return None
 
 
-def data_analysis(xxl, files_dir, settings):
+def data_analysis(xxl, files_dir, settings, dir_scan):
     # ===(Находим столбец с регистрационными номерами)===
     registry_column_type = settings['file']['registry_column']['enabled']
     if registry_column_type == 'text':
@@ -63,8 +63,12 @@ def data_analysis(xxl, files_dir, settings):
     for position, string_number in enumerate(range(first_string, xxl.size_column(registry_column) + 1)):
         cell_data = str(xxl.ws[f'{registry_column}{string_number}'].value).strip()
         cell_data = cell_data[:cell_data.rfind('.')] if '.' in cell_data else cell_data
+
         if '/' in cell_data:
             cell_data = cell_data.replace(r'/', r'-')
+            xxl.ws[f'{registry_column}{string_number}'].value = cell_data
+        elif '_' in cell_data:
+            cell_data = cell_data.replace(r'_', r'-')
             xxl.ws[f'{registry_column}{string_number}'].value = cell_data
 
         miss_file_count = 0
@@ -92,9 +96,18 @@ def data_analysis(xxl, files_dir, settings):
 def body(file_path, dir_scan, ws_name, settings):
     xxl = Excel(file_path, dir_scan, ws_name, settings)
     files_dir = os.listdir(path=dir_scan)
+
+    for file in files_dir:
+        if ',' in file:
+            old_name = f'{dir_scan}\\{file}'
+            new_name = old_name.replace(',', '')
+            os.rename(old_name, new_name)
+
+    files_dir = os.listdir(path=dir_scan)
+
     print(f'Получен список файлов в папке {dir_scan}.')
     print('Анализ данных и формирование гиперссылок...')
-    data_analysis(xxl, files_dir, settings)
+    data_analysis(xxl, files_dir, settings, dir_scan)
     print('Гиперссылки сформированы.')
     print('Complete...' + '\n' * 1)
 

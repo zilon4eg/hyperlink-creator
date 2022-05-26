@@ -70,7 +70,7 @@ class Excel:
         is_italic = self.settings['font']['style']['italic']
         is_underline = self.settings['font']['style']['underline']
         # ===(Переменная для определения, была ли пересоздана гиперссылка)===
-        hyperlink_is_ceate = False
+        hyperlink_is_create = False
 
         try:
             hyperlink = self.ws[f'{position}'].hyperlink
@@ -81,12 +81,16 @@ class Excel:
                 name == self.ws[f'{position}'].value
                 and f'{self.dir_scan}\\{file_name}'.replace('\\', '/') in hyperlink.replace('\\', '/')
         ):
-            hyperlink_is_ceate = False
+            hyperlink_is_create = False
         else:
-            self.ws[f'{position}'].add_hyperlink(f'{self.dir_scan}\\{file_name}', name)
-            hyperlink_is_ceate = True
+            try:
+                dir_scan = self.dir_scan.replace('/', '\\')
+                self.ws[f'{position}'].add_hyperlink(f'{dir_scan}\\{file_name}', name)
+                hyperlink_is_create = True
+            except Exception:
+                hyperlink_is_create = True
 
-        if hyperlink_is_ceate is False:
+        if hyperlink_is_create is False:
             if self.font_name != self.ws[f'{position}'].font.name:
                 self.ws[f'{position}'].font.name = self.font_name
             if self.font_size != self.ws[f'{position}'].font.size:
