@@ -212,8 +212,9 @@ class GUI:
 
     @staticmethod
     def about():
-        message1 = 'Это скромное и ничем не выдающееся приложение написано только с одной целью,\n' \
-                  'автоматизировать рабочий процесс и облегчить нелегкий труд моей милой Котеньки.'
+        message1 = 'Эта программка для создания гиперссылок в документах Excel (только формат xlsx!).\n' \
+                   '                Написана она для моей единственной и ненаглядной Котеньки,\n' \
+                   '                                     чьё сердечко бьется в такт с моим.'
         message2 = '''
                           ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
                           ⣿⣿⣿⣿⡿⠟⠋⠉⠉⠉⠉⠛⠿⣿⣿⣿⣿⡿⠛⠉⠉⠄⠈⠉⠙⠿⣿⣿⣿⣿
@@ -344,7 +345,7 @@ class GUI:
         right_col = sg.Column([
             [sg.Text(text='Размер', auto_size_text=True)],
             [sg.InputText(default_text=font_size, key='FONT_SIZE', readonly=True, size=8)],
-            [sg.Listbox(values=font_size_list, default_values=[font_size], key='FONT_SIZE_LIST', enable_events=True, size=(6, 8))],
+            [sg.Listbox(values=font_size_list, default_values=[int(font_size)], key='FONT_SIZE_LIST', enable_events=True, size=(6, 8))],
         ], size=(70, 220))
 
         tab_font_layout = [
